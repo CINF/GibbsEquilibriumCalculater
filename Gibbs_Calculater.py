@@ -430,6 +430,14 @@ print 'p ved 500K: '+str(cNH3+ cN2+cH2)
 print fsolve(Equilibrium_NH3, (cNH3,cN2 ,cH2),args=(temp,1.0),xtol=1.49012e-10,maxfev=10000 )
 print Equilibrium_NH3((cNH3,cN2 ,cH2),temp,1.0)
 
+
+fig = plt.figure()
+axis = fig.add_subplot(1,1,1)
+axis.tick_params(direction='in', length=6, width=1, colors='k',labelsize=10,axis='both',pad=3)
+axis.set_xlabel('T / [K]', fontsize=10)
+axis.set_ylabel('c', fontsize=10)
+
+
 if False:
     x = np.zeros(300)
     y1 = np.zeros(300)
@@ -447,33 +455,15 @@ if False:
         y2[i] = cCO
         i+=1
     if True:
-        fig = plt.figure()
-        fig.subplots_adjust(bottom=0.2, left=0.2) # Make room for x-label
-
-        ratio = 0.61803398             # Golden mean
-        #ratio = 0.4                     # This figure should be very wide to span two columns
-        fig_width = 17
-        fig_width = fig_width /2.54     # width in cm converted to inches
-        fig_height = fig_width*ratio
-        fig.set_size_inches(fig_width,fig_height)
-
-        axis = fig.add_subplot(1,1,1)
         axis.semilogy()
         axis.plot(x,y1, 'r',label='MeOH')
         axis.plot(x,y2, 'g',label='CO')
         axis.legend(loc='upper right',prop={'size':10})
         plt.xlim(300,600)
         #axis.set_ylim(1E-5,1E3)
-        axis.tick_params(direction='in', length=6, width=1, colors='k',labelsize=10,axis='both',pad=3)
-        axis.set_xlabel('T / [K]', fontsize=10)
-        axis.set_ylabel('c', fontsize=10)
-        #plt.tight_layout()
         plt.show()
         print 'Saving'
-        #plt.savefig('fig/Arrhenius_all.png',dpi=600)
-        #plt.close()
-        #plt.clf()
-        #del fig
+
 
 if False:
     x = np.zeros(300)
@@ -491,33 +481,14 @@ if False:
         y2[i] = cN2
         i+=1
     if True:
-        fig = plt.figure()
-        fig.subplots_adjust(bottom=0.2, left=0.2) # Make room for x-label
-
-        ratio = 0.61803398             # Golden mean
-        #ratio = 0.4                     # This figure should be very wide to span two columns
-        fig_width = 17
-        fig_width = fig_width /2.54     # width in cm converted to inches
-        fig_height = fig_width*ratio
-        fig.set_size_inches(fig_width,fig_height)
-
-        axis = fig.add_subplot(1,1,1)
-        #axis.semilogy()
         axis.plot(x,y1, 'r',label='NH3')
         axis.plot(x,y2, 'g',label='N2')
         axis.legend(loc='upper right',prop={'size':10})
         plt.xlim(300,600)
         #axis.set_ylim(1E-5,1E3)
-        axis.tick_params(direction='in', length=6, width=1, colors='k',labelsize=10,axis='both',pad=3)
-        axis.set_xlabel('1000/T / [1/K]', fontsize=10)
-        axis.set_ylabel('TOF / [molecules/site/s]', fontsize=10)
-        #plt.tight_layout()
         plt.show()
         print 'Saving'
-        #plt.savefig('fig/Arrhenius_all.png',dpi=600)
-        #plt.close()
-        #plt.clf()
-        #del fig
+
 if False:
     x = np.zeros(300)
     y1 = np.zeros(300)
@@ -526,17 +497,7 @@ if False:
     cNH3, cN2,cH2 =  fsolve(Equilibrium_NH3, (0.01, 0.24,0.74),args=(500.0,1.0),xtol=1.49012e-10,maxfev=10000 )
     print 'NH3 ved 500K: '+str(cNH3)
     cNH3, cN2,cH2 =  fsolve(Equilibrium_NH3, (0.6, 0.2,0.3),args=(600.0,1.0),xtol=1.49012e-10,maxfev=10000)
-    fig = plt.figure()
-    fig.subplots_adjust(bottom=0.2, left=0.2) # Make room for x-label
 
-    ratio = 0.61803398             # Golden mean
-    #ratio = 0.4                     # This figure should be very wide to span two columns
-    fig_width = 17
-    fig_width = fig_width /2.54     # width in cm converted to inches
-    fig_height = fig_width*ratio
-    fig.set_size_inches(fig_width,fig_height)
-
-    axis = fig.add_subplot(1,1,1)
     for pi in [1.0,2.0,4.0]:
         x = np.zeros(300)
         y1 = np.zeros(300)
@@ -562,9 +523,5 @@ if False:
     #plt.tight_layout()
     plt.show()
     print 'Saving'
-    #plt.savefig('fig/Arrhenius_all.png',dpi=600)
-    #plt.close()
-    #plt.clf()
-    #del fig
 
 

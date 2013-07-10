@@ -31,6 +31,7 @@ import math
 #    return return_string, list_of_elements
 
 
+#Enthalpy
 H = {} # unit J/mol
 H['CO(g)'] = -110500.0
 H['CO2(g)'] = -393500.0
@@ -41,8 +42,8 @@ H['CH4(g)'] = -74870.0
 H['CH3OH(g)'] = -201300.0
 H['N2(g)'] = 0.0
 H['NH3(g)'] = -45940.0
-H['CO(Ru-a)'] = -110500.0-77200.0 #(0.8eV)
 
+#Entropy
 S = {} # unit J/mol/K
 S['CO(g)'] = 197.7
 S['CO2(g)'] = 213.7
@@ -52,7 +53,7 @@ S['CH4(g)'] = 186.25
 S['CH3OH(g)'] = 239.9
 S['N2(g)'] = 191.61
 S['NH3(g)'] = 192.778
-S['CO(Ru-a)'] = 0.0
+
 
 composition = {}
 composition_size = 10
@@ -128,21 +129,25 @@ composition['NO2'][8]=2
 
 
 
-
+#Reaction equlibrium constant
 def K_equilibrium(dG_reaction,T):
-    R=8.3144621
+    R=8.3144621 # Gas constant
     K = math.exp(-dG_reaction/(R*T))
     return K
 
+#Change in Gibbs free energy
 def dG(dH_reaction,dS_reaction,T):
     dG_reaction = dH_reaction-T*dS_reaction
     return dG_reaction
 
+"""
+#Change in Gibbs free energy
 def dGv2(C_value, T):
     dG_reaction = 0
     for i in range(len(C_value)):
         dG_reaction += C_value[i][1] * ( H(C_value[i][0]) - T * S(C_value[i][0]))
     return dG_reaction
+"""
 
 def Equilibrium_full((MeOH, CO, H2O, CO2, H2),T,pressure):
     K_MeOH = K_equilibrium(dG(dH['MeOH'],dS['MeOH'],T),T)
@@ -154,6 +159,7 @@ def Equilibrium_full((MeOH, CO, H2O, CO2, H2),T,pressure):
             1-(MeOH+CO+H2O+CO2+H2)
             )
 
+#CO2 +3H2 -> CH3OH + H2O
 def Equilibrium_simple((MeOH, H2O, CO2, H2),T,pressure):
     K_MeOH = K_equilibrium(dG(dH['MeOH'],dS['MeOH'],T),T)
     return (K_MeOH-(((MeOH) * (H2O)) / ((CO2) * (H2)**3))*(pressure)**p_factor['MeOH'],
@@ -168,14 +174,6 @@ def Equilibrium_NH3((NH3, N2, H2),T,pressure):
             3.0/1.0-(2*H2+3*NH3)/(2*N2+1*NH3),
             1.0 - (NH3+N2+H2)
             )
-#pressure = 1.0
-def Equilibrium_RuCO((CO, COa,Ru),T,pressure):
-    K_RuCO = K_equilibrium(dG(dH['CO(Ru-a)'],dS['CO(Ru-a)'],T),T)
-    return (K_RuCO-(((COa)) / ((CO)*(Ru)))*(pressure)**p_factor['CO(Ru-a)'],
-            1.0-(COa+Ru),
-            pressure-CO,
-            )
-    
 
 def matrix_problem(reduced_list_of_elements,element):
     #print 'matrix_problem'
@@ -376,14 +374,10 @@ dH['MeOH'] = (H['CH3OH(g)']+H['H2O(g)'])-(H['CO2(g)']+3*H['H2(g)'])
 dH['CO'] = (H['CO(g)']+H['H2O(g)'])-(H['CO2(g)']+H['H2(g)'])
 dH['NH3'] = (H['NH3(g)'])-(0.5*H['N2(g)']+1.5*H['H2(g)'])
 
-dH['CO(Ru-a)'] = (H['CO(Ru-a)'])-(H['CO(g)'])
-
 dS = {}
 dS['MeOH'] = (S['CH3OH(g)']+S['H2O(g)'])-(S['CO2(g)']+3*S['H2(g)'])
 dS['CO'] = (S['CO(g)']+S['H2O(g)'])-(S['CO2(g)']+S['H2(g)'])
 dS['NH3'] = (S['NH3(g)'])-(0.5*S['N2(g)']+1.5*S['H2(g)'])
-
-dS['CO(Ru-a)'] = (S['CO(Ru-a)'])-(S['CO(g)'])
 
 print 'dG MeOH: ' + str(dG(dH['MeOH'],dS['MeOH'],500))
 

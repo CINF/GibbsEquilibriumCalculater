@@ -17,7 +17,14 @@ def elements(z):
 class Atom():
     def __init__(self, z):
         self.z = z
-        
+
+    def __eq__(self, other):
+        if other.z == self.z:
+            equal = True
+        else:
+            equal = False
+        return equal
+
     def symbol(self):
         info = elements(self.z)
         return info['symbol']

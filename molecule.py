@@ -10,8 +10,8 @@ class SimpleMolecule():
         else:
             return False
 
-    def __hash__(self):
-        pass
+   # def __hash__(self):
+   #     pass
 
     def list_of_atoms(self):
         atom_list = {}
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     
     CO = SimpleMolecule([atom.Atom(6), atom.Atom(8)])
     
-    a = {}
-    a[CO]['gibbs'] = -110500.0
+    #a = {}
+    #a[CO]['gibbs'] = -110500.0
     
     print n == m
     print n == l

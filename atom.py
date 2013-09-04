@@ -31,22 +31,22 @@ class Atom(): # should input be numebr or string for Carbon, 'C' or '6'
             self.Z = Z      
 
     def __eq__(self, other):
-        if other.z == self.z:
+        if other.Z == self.Z:
             equal = True
         else:
             equal = False
         return equal
 
     def symbol(self):
-        info = elements(self.z)
+        info = elements(self.Z)
         return info['symbol']
         
     def iso(self):
-        info = iso(elements(self.z)['symbol'])
+        info = iso(elements(self.Z)['symbol'])
         return info
         
     def mass(self):
-        info = iso(elements(self.z)['symbol'])
+        info = iso(elements(self.Z)['symbol'])
         amu = 0
         for i in info.keys():
             amu += (info[i][0]*info[i][1])

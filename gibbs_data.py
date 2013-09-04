@@ -5,41 +5,43 @@ from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 import numpy as np 
 
+from known_molecules import *
+
 entropy_data = {} # unit J/mol/K
-entropy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1)] )] = 130.679 #H2
-entropy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1), atom.Atom(8)])] = 188.84 #H2O
-#entropy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(8)])] = 113 #H2O2
-#entropy_data[molecule.Molecule([atom.Atom(8), atom.Atom(8)])] = 113 #O2
+entropy_data[H2] = 130.679
+entropy_data[H2O] = 188.84
+#entropy_data[H2O2] = 113
+#entropy_data[O2] = 113
 
-entropy_data[molecule.Molecule([atom.Atom(6), atom.Atom(8)])] = 197.7 #CO
-entropy_data[molecule.Molecule([atom.Atom(6), atom.Atom(8), atom.Atom(8)])] = 213.7 #CO2
+entropy_data[CO] = 197.7
+entropy_data[CO2] = 213.7
 
-entropy_data[molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(1)])] = 186.25 #CH4
-entropy_data[molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(1)])] = 239.9 #CH3OH
+entropy_data[CH4] = 186.25
+entropy_data[CH3OH] = 239.9
 
-entropy_data[molecule.Molecule([atom.Atom(7), atom.Atom(1), atom.Atom(1), atom.Atom(1)])] = 192.778 #NH3
+entropy_data[NH3] = 192.778
 
-entropy_data[molecule.Molecule([atom.Atom(7), atom.Atom(7)])] = 191.61 #N2
-#entropy_data[molecule.Molecule([atom.Atom(7), atom.Atom(8)])] = 113 #NO
-#entropy_data[molecule.Molecule([atom.Atom(7), atom.Atom(8), atom.Atom(8)])] = 113 #NO2
+entropy_data[N2] = 191.61
+#entropy_data[NO] = 113
+#entropy_data[NO2] = 113
 
 enthalpy_data = {} # unit J/mol
-enthalpy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1)] )] = 0.0 #H2
-enthalpy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1), atom.Atom(8)])] = -241830.0 #H2O
-#enthalpy_data[molecule.Molecule([atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(8)])] = 113 #H2O2
-enthalpy_data[molecule.Molecule([atom.Atom(8), atom.Atom(8)])] = 0.0 #O2
+enthalpy_data[H2] = 0.0
+enthalpy_data[H2O] = -241830.0
+#enthalpy_data[H2O2] = 113 
+enthalpy_data[O2] = 0.0
 
-enthalpy_data[molecule.Molecule([atom.Atom(6), atom.Atom(8)])] = -110500.0 #CO
-enthalpy_data[molecule.Molecule([atom.Atom(6), atom.Atom(8), atom.Atom(8)])] = -393500.0 #CO2
+enthalpy_data[CO] = -110500.0
+enthalpy_data[CO2] = -393500.0
 
-enthalpy_data[molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(1)])] = -74870.0 #CH4
-enthalpy_data[molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(1)])] = -201300.0 #CH3OH
+enthalpy_data[CH4] = -74870.0
+enthalpy_data[CH3OH] = -201300.0 #CH3OH
 
-enthalpy_data[molecule.Molecule([atom.Atom(7), atom.Atom(1), atom.Atom(1), atom.Atom(1)])] = -45940.0 #NH3
+enthalpy_data[NH3] = -45940.0 #NH3
 
-enthalpy_data[molecule.Molecule([atom.Atom(7), atom.Atom(7)])] = 0.0 #N2
-#enthalpy_data[molecule.Molecule([atom.Atom(7), atom.Atom(8)])] = 113 #NO
-#enthalpy_data[molecule.Molecule([atom.Atom(7), atom.Atom(8), atom.Atom(8)])] = 113 #NO2
+enthalpy_data[N2] = 0.0 #N2
+#enthalpy_data[NO] = 113 #NO
+#enthalpy_data[NO2] = 113 #NO2
 
 
 def assign_random_data(Set):
@@ -72,11 +74,7 @@ def Equilibrium_MeOH((MeOH, CO, H2O, CO2, H2),T,pressure): # should not be in th
 if __name__ == '__main__':
     print 'Creating molecules'
     MeOH = molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(1)])
-    CO = molecule.Molecule([atom.Atom(6), atom.Atom(8)])
-    CO2 = molecule.Molecule([atom.Atom(6), atom.Atom(8), atom.Atom(8)])
-    H2O = molecule.Molecule([atom.Atom(1), atom.Atom(1), atom.Atom(8)])
-    H2 = molecule.Molecule([atom.Atom(1), atom.Atom(1)])
-    
+
     print 'adding ethanlpy and entropy to molecules'
     assign_random_data([MeOH,CO,CO2,H2O,H2])
     

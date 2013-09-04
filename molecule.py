@@ -1,52 +1,62 @@
-import hashlib
-
 import atom
-
-class SimpleMolecule():
-    def __init__(self, atoms):
-        self.atoms = atoms
-
-    def __eq__(self, other):
-        if self.list_of_atoms() == other.list_of_atoms():
-            return True
-        else:
-            return False
-
-    def __hash__(self):
-        hash_value = ''
-        for a in self.atoms:
-            hash_value = hashlib.sha224(a.symbol() + hash_value).hexdigest()
-        return int(hash_value,16)
-
-    def list_of_atoms(self):
-        atom_list = {}
-        for element in self.atoms:
-            if element.Z in atom_list:
-                atom_list[element.Z] += 1
-            else:
-                atom_list[element.Z] = 1
-        return atom_list
+from simple_molecule import SimpleMolecule
+from known_molecules import *
 
 
 class Molecule(SimpleMolecule):
     
-    def gibbs_free_energy(self):
-        gibbs = -1
-        if self == Molecule([atom.Atom(6), atom.Atom(8)]):
+    def enthalpy(self):
+        # As this table gets larger, the actual data should properly go in a file
+        gibbs = float('NaN')
+        if self == CO:
             gibbs = -110500.0
+        if self == H2:
+            gibbs = 0.0
+        if self == H2O:
+            gibbs = -241830.0
+        if self == O2:
+            gibbs = 0.0
+        if self == CO2:
+            gibbs = -393500.0
+        if self == CH4:
+            gibbs = -74870.0
+        if self == CH3OH:
+            gibbs = -201300.0
+        if self == NH3:
+            gibbs = -45940.0
+        if self == N2:
+            gibbs = 0.0            
         return gibbs
 
+    def entropy(self):
+        # As this table gets larger, the actual data should properly go in a file
+        entropy = float('NaN')
+        if self == CO:
+            entropy = 197.7
+        if self == H2:
+            entropy = 130.679
+        if self == H2O:
+            entropy = 188.84
+        if self == CO2:
+            entropy = 213.7
+        if self == CH4:
+            entropy = 186.25
+        if self == CH3OH:
+            entropy = 239.9
+        if self == NH3:
+            entropy = 192.778
+        if self == N2:
+            entropy = 191.61           
+        return gibbs
 
 if __name__ == '__main__':
     m = Molecule([atom.Atom(5), atom.Atom(2), atom.Atom(3), atom.Atom(2)])
     l = Molecule([atom.Atom(2), atom.Atom(5), atom.Atom(3), atom.Atom(2)])
     n = Molecule([atom.Atom(6), atom.Atom(8)])
-    
-    CO = SimpleMolecule([atom.Atom(6), atom.Atom(8)])
-    
+
     print n == m
     print n == l
     print l == m
-    print m.gibbs_free_energy()
-    print n.gibbs_free_energy()
+    print m.enthalpy()
+    print n.enthalpy()
  

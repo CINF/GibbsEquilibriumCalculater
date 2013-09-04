@@ -23,8 +23,12 @@ def iso(z):
     return list_of_iso[z]
     
 class Atom(): # should input be numebr or string for Carbon, 'C' or '6'
-    def __init__(self, z):
-        self.z = z
+    def __init__(self, Z=0, name=''):
+        #if not name == '':
+        #    self.Z = 
+        
+        if Z > 0:
+            self.Z = Z      
 
     def __eq__(self, other):
         if other.z == self.z:
@@ -36,9 +40,11 @@ class Atom(): # should input be numebr or string for Carbon, 'C' or '6'
     def symbol(self):
         info = elements(self.z)
         return info['symbol']
+        
     def iso(self):
         info = iso(elements(self.z)['symbol'])
         return info
+        
     def mass(self):
         info = iso(elements(self.z)['symbol'])
         amu = 0

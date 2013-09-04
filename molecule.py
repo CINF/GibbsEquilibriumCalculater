@@ -1,3 +1,5 @@
+import hashlib
+
 import atom
 
 class SimpleMolecule():
@@ -11,7 +13,10 @@ class SimpleMolecule():
             return False
 
     def __hash__(self):
-        return hash(self.mass()) # very wrong hash value, but it made testing work
+        hash_value = ''
+        for a in self.atoms:
+            hash_value = hashlib.sha224(a.symbol() + hash_value).hexdigest()
+        return int(hash_value,16)
 
     def list_of_atoms(self):
         atom_list = {}
@@ -29,6 +34,7 @@ class Molecule(SimpleMolecule):
         gibbs = -1
         if self == Molecule([atom.Atom(6), atom.Atom(8)]):
             gibbs = -110500.0
+        return gibbs
 
 
 if __name__ == '__main__':
@@ -38,13 +44,9 @@ if __name__ == '__main__':
     
     CO = SimpleMolecule([atom.Atom(6), atom.Atom(8)])
     
-    a = {}
-    a[CO]['gibbs'] = -110500.0
-    
     print n == m
     print n == l
     print l == m
-    m.gibbs_free_energy()
-    n.gibbs_free_energy()
-    
-    #print m.list_of_atoms()
+    print m.gibbs_free_energy()
+    print n.gibbs_free_energy()
+ 

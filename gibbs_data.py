@@ -5,55 +5,9 @@ from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 import numpy as np 
 
-from known_molecules import *
+#from known_molecules import *
+import known_molecules as km
 
-entropy_data = {} # unit J/mol/K
-entropy_data[H2] = 130.679
-entropy_data[H2O] = 188.84
-#entropy_data[H2O2] = 113
-#entropy_data[O2] = 113
-
-entropy_data[CO] = 197.7
-entropy_data[CO2] = 213.7
-
-entropy_data[CH4] = 186.25
-entropy_data[CH3OH] = 239.9
-
-entropy_data[NH3] = 192.778
-
-entropy_data[N2] = 191.61
-#entropy_data[NO] = 113
-#entropy_data[NO2] = 113
-
-enthalpy_data = {} # unit J/mol
-enthalpy_data[H2] = 0.0
-enthalpy_data[H2O] = -241830.0
-#enthalpy_data[H2O2] = 113 
-enthalpy_data[O2] = 0.0
-
-enthalpy_data[CO] = -110500.0
-enthalpy_data[CO2] = -393500.0
-
-enthalpy_data[CH4] = -74870.0
-enthalpy_data[CH3OH] = -201300.0 #CH3OH
-
-enthalpy_data[NH3] = -45940.0 #NH3
-
-enthalpy_data[N2] = 0.0 #N2
-#enthalpy_data[NO] = 113 #NO
-#enthalpy_data[NO2] = 113 #NO2
-
-
-def assign_random_data(Set):
-    for M in Set:
-        try:
-            M.entropy = entropy_data[M]
-        except KeyError:
-            print 'Molecule doesnt exist in DB'
-        try:
-            M.enthalpy = enthalpy_data[M]
-        except KeyError:
-            print 'Molecule doesnt exist in DB'
 
 def K_equilibrium(dH,dS,T): # should not be in this file, just a check if it is working
     R=8.3144621 # Gas constant
@@ -72,20 +26,15 @@ def Equilibrium_MeOH((MeOH, CO, H2O, CO2, H2),T,pressure): # should not be in th
             )
 
 if __name__ == '__main__':
-    print 'Creating molecules'
-    MeOH = molecule.Molecule([atom.Atom(6), atom.Atom(1), atom.Atom(1), atom.Atom(1), atom.Atom(8), atom.Atom(1)])
 
-    print 'adding ethanlpy and entropy to molecules'
-    assign_random_data([MeOH,CO,CO2,H2O,H2])
-    
     print 'manual calculating change in enthanlpy and entropy for reactions'
     dH={}
     dS={}
-    dH['CO']=(CO.enthalpy+H2O.enthalpy)-(CO2.enthalpy+H2.enthalpy)
-    dS['CO']=(CO.entropy+H2O.entropy)-(CO2.entropy+H2.entropy)
+    dH['CO']=(km.CO.enthalpy + km.H2O.enthalpy)-(km.CO2.enthalpy+km.H2.enthalpy)
+    dS['CO']=(km.CO.entropy + km.H2O.entropy)-(km.CO2.entropy+km.H2.entropy)
 
-    dH['MeOH']=(MeOH.enthalpy+H2O.enthalpy)-(CO2.enthalpy+3*H2.enthalpy)
-    dS['MeOH']=(MeOH.entropy+H2O.entropy)-(CO2.entropy+3*H2.entropy)
+    dH['MeOH']=(km.CH3OH.enthalpy+km.H2O.enthalpy)-(km.CO2.enthalpy+3*km.H2.enthalpy)
+    dS['MeOH']=(km.CH3OH.entropy+km.H2O.entropy)-(km.CO2.entropy+3*km.H2.entropy)
 
     print 'Setting up flow'
     Flow = {}

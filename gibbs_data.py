@@ -85,8 +85,8 @@ if __name__ == '__main__':
             axis.plot(CD['T'],np.array(CD['MeOH'])*0.01, 'm-',label='MeOH_CD')
             axis.plot(x,y2, 'g',label='CO')
             axis.legend(loc='upper right',prop={'size':10})
-            plt.xlim(500,600)
-            plt.ylim(1E-5,1E-3)
+            plt.xlim(300,600)
+            plt.ylim(1E-5,1.0)
             #axis.set_ylim(1E-5,1E3)
             plt.show()
             print 'Saving'

@@ -43,7 +43,7 @@ if __name__ == '__main__':
     p_factor = {}
     p_factor['MeOH'] = -2.0
     p_factor['CO'] = 0.0
-    pressure = 2.5 #bar
+    pressure = 2.0 #bar
     T=300.0 # K
 
     print 'Eq test'
@@ -76,12 +76,17 @@ if __name__ == '__main__':
             y1[i] = cMeOH
             y2[i] = cCO
             i+=1
+        import control_data
+        CD = control_data.MeOH_control_set(pressure,0.75,0.25,0.0,0.0,0.0)
+        
         if True:
             axis.semilogy()
             axis.plot(x,y1, 'r',label='MeOH')
+            axis.plot(CD['T'],np.array(CD['MeOH'])*0.01, 'm-',label='MeOH_CD')
             axis.plot(x,y2, 'g',label='CO')
             axis.legend(loc='upper right',prop={'size':10})
-            plt.xlim(300,600)
+            plt.xlim(500,600)
+            plt.ylim(1E-5,1E-3)
             #axis.set_ylim(1E-5,1E3)
             plt.show()
             print 'Saving'

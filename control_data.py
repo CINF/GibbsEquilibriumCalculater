@@ -64,11 +64,11 @@ def MeOH_control_set(p,cH2=0.75,cCO2=0.25,cCO=0.0,cMeOH=0.0,cH2O=0.0):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt 
-    MeOH_control_set(1.0,0.75,0.25,0.0,0.0,0.0)
+    #MeOH_control_set(2.5,0.75,0.25,0.0,0.0,0.0)
 
-    MeOH_control_set(1.0,0.75,0.25,0.0,0.0,0.1)
+    #MeOH_control_set(1.0,0.75,0.25,0.0,0.0,0.1)
 
-    MeOH_control_set(1.0,0.75,0.25)
+    #MeOH_control_set(1.0,0.75,0.25)
     if True:
         fig = plt.figure()
         axis = fig.add_subplot(1,1,1)

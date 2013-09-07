@@ -33,8 +33,7 @@ N2    = molecule.Molecule([atom.Atom(7), atom.Atom(7)])
 NO    = molecule.Molecule([atom.Atom(7), atom.Atom(8)])
 NO2   = molecule.Molecule([atom.Atom(7), atom.Atom(8), atom.Atom(8)])
 
-
-
+H2.coeff = [33.066178,-11.363417,11.432816,-2.772874,-0.158558,-9.980797,172.707974,0.0]
 
 H2.enthalpy    = 0.0
 O2.enthalpy    = 0.0

@@ -2,6 +2,8 @@ import hashlib
 
 import atom
 
+import math
+
 class Molecule():
     def __init__(self, atoms):
         self.atoms = atoms
@@ -30,26 +32,39 @@ class Molecule():
                 atom_list[element.Z] = 1
         return atom_list
         
-    def entropy(self, T=float('Nan')):
-        if T == float('Nan'):
-            S = self.entropy_t0
+    def entropy(self, T=None):
+        if T == None:
+            S = self.entropy_t0#J/mol/K
         else:
-            Tk=T/1000
-            S = coef[0]*math.log(Tk)+coef[1]*Tk+coef[3]*Tk**2/2+coef[4]*Tk**3/3-coef[5]/(2*Tk**2)+coef[7]
-        return S
+            Tk=float(T)/1000
+            S = self.coeff[0]*math.log(Tk)+self.coeff[1]*Tk+self.coeff[2]*Tk**2/2.0+self.coeff[3]*Tk**3/3.0-self.coeff[4]/(2.0*Tk**2)+self.coeff[6]
+            S = S#J/mol/K
+        return S #J/mol/K
 
-    def enthalpy(self, T=float('Nan')):
-        if T == float('Nan'):
-            H = self.entropy_t0
+    def enthalpy(self, T=None):
+        if T == None:
+            H = self.enthalpy_t0
         else:
-            Tk=T/1000
-            H = coef[0]*Tk+coef[1]*Tk**2/2+coef[3]*Tk**3/3+coef[4]*Tk**4/4-coef[5]/Tk+coef[6]-coef[8]+self.M.enthalpy_t0
-        return H
+            Tk=float(T)/1000
+            H = self.coeff[0]*Tk+self.coeff[1]*Tk**2/2.0+self.coeff[2]*Tk**3/3.0+self.coeff[3]*Tk**4/4.0-self.coeff[4]/Tk+self.coeff[5]-self.coeff[7]
+        return H*1000.0 + self.enthalpy_t0 #J/mol/K
+    
+    def gibbs(self, T=None):
+        if T == None:
+            G = self.enthalpy()-298.15*self.entropy()
+        else:
+            Tk=float(T)/1000
+            G = self.enthalpy(T)-T*self.entropy(T)
+        return G #J/mol/K
 
 if __name__ == '__main__':
+    import known_molecules as km
+    
     m = Molecule([atom.Atom(5), atom.Atom(2), atom.Atom(3), atom.Atom(2)])
     l = Molecule([atom.Atom(2), atom.Atom(5), atom.Atom(3), atom.Atom(2)])
     n = Molecule([atom.Atom(6), atom.Atom(8)])
+
+    print km.H2.gibbs(300)
 
     print n == m
     print n == l

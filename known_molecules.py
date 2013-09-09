@@ -34,23 +34,36 @@ NO    = molecule.Molecule([atom.Atom(7), atom.Atom(8)])
 NO2   = molecule.Molecule([atom.Atom(7), atom.Atom(8), atom.Atom(8)])
 
 H2.coeff = [33.066178,-11.363417,11.432816,-2.772874,-0.158558,-9.980797,172.707974,0.0]
+H2O.coeff = [30.09200,  6.832514,     6.793435,  -2.534480,  0.082139, -250.8810, 223.3967,   -241.8264]  # H2O
+CO2.coeff = [24.99735,  55.18696,   -33.69137,    7.948387, -0.136638, -403.6075, 228.2431,   -393.5224]  # CO2
+CO.coeff = [25.56759,  6.096130,     4.054656,  -2.671301,  0.131021, -118.0089, 227.3665,   -110.5271]  # CO
 
-H2.enthalpy    = 0.0
-O2.enthalpy    = 0.0
-N2.enthalpy    = 0.0
-CO.enthalpy    = -110500.0
-H2O.enthalpy   = -241830.0
-CO2.enthalpy   = -393500.0
-CH4.enthalpy   = -74870.0
-CH3OH.enthalpy = -201300.0
-NH3.enthalpy   = -45940.0
+O2.coeff = [31.32234,  -20.23531,    57.86644,  -36.50624,  -0.007374, -8.903471, 246.7945,   0.0]  # O2
+CH4.coeff = [-0.703029,  108.4773,    -42.52157,  5.862788,  0.678565, -76.84376, 158.7163,   -74.87310]  # CH4
+NH3.coeff = [19.99563,  49.77119,   -15.37599,  1.921168, 0.189174, -53.30667, 203.8591,  -45.89806]  # NH3
 
-H2.entropy    = 130.679
-CO.entropy    = 197.7
-H2O.entropy   = 188.84
-CO2.entropy   = 213.7
-CH4.entropy   = 186.25
-CH3OH.entropy = 239.9
-N2.entropy    = 191.61
-NH3.entropy   = 192.778
+CH3OH.coeff = [14.1952,  97.7218,  -9.73279,  -12.8461,0.15819 , -209.037, 0.0, -201.102]  # NH3, coeff[6] is missing
+
+H2.enthalpy_t0    = 0.0
+O2.enthalpy_t0    = 0.0
+N2.enthalpy_t0    = 0.0
+CO.enthalpy_t0    = -110500.0
+H2O.enthalpy_t0   = -241830.0
+CO2.enthalpy_t0   = -393500.0
+CH4.enthalpy_t0   = -74870.0
+CH3OH.enthalpy_t0 = -201300.0
+NH3.enthalpy_t0   = -45940.0
+
+H2.entropy_t0    = 130.679
+CO.entropy_t0    = 197.7
+H2O.entropy_t0   = 188.84
+CO2.entropy_t0   = 213.7
+CH4.entropy_t0   = 186.25
+CH3OH.entropy_t0 = 239.9
+N2.entropy_t0    = 191.61
+NH3.entropy_t0   = 192.778
+
+if __name__ == '__main__':
+  print 'Main'
+  print H2.enthalpy_t0
 

@@ -4,8 +4,8 @@ class Gas():
     def __init__(self,molecules,partial_pressure_ratio=None,pressure=None,temperature=None):
         self.molecules = molecules
         self.partial_pressure_ratio = partial_pressure_ratio
-        self.pressure = pressure
-        self.temperature = temperature
+        self.pressure = float(pressure)
+        self.temperature = float(temperature)
         if self.partial_pressure_ratio == None:
             print 'ERROR - Partial pressure needed'
         if self.pressure == None:
@@ -14,6 +14,34 @@ class Gas():
             self.temperature = 300 #K
         for i in range(len(self.molecules)):
             self.molecules[i].partial_pressure = partial_pressure_ratio[i]
+
+    def __add__(self,other):
+        self.assign_pressure_to_molecule()
+        other.assign_pressure_to_molecule()
+        pressure = self.pressure + other.pressure
+        temperature = 0.5*(self.temperature + other.temperature)
+        #M = self.molecules + other.molecules
+        #P = self.partial_pressure_ratio + other.partial_pressure_ratio
+        molecules = []
+        for mol in self.molecules:
+            molecules += [mol]
+        partial_pressure_ratio = []
+        for mol in other.molecules:
+            if mol not in self.molecules:
+                molecules += [mol]
+        for mol in molecules:
+            partial_pressure_ratio += [self.get_partial_pressure(mol)*self.pressure/(pressure)+other.get_partial_pressure(mol)*other.pressure/(pressure)]
+        print len(molecules)
+        print sum(partial_pressure_ratio)
+        return Gas(molecules,partial_pressure_ratio,pressure,temperature)
+
+    def __eq__(self,other):
+        if self.pressure == other.pressure:
+            if self.temperature == other.temperature:
+                if self.molecules == other.molecules:
+                    if self.partial_pressure_ratio == other.partial_pressure_ratio:
+                        return True
+        return False
 
     def gas_equlibrium(self):
         # calculate the equlibrium gas composition given from the initial gas composition, temperature and pressure
@@ -58,7 +86,8 @@ class Gas():
 
     def assign_pressure_to_molecule(self):
         for i in range(len(self.molecules)):
-            self.molecules[i].partial_pressure = self.partial_pressure_ratio[i]
+            self.molecules[i].partial_pressure = self.partial_pressure_ratio[i]/sum(self.partial_pressure_ratio)
+            self.molecules[i].pressure = self.partial_pressure_ratio[i]/sum(self.partial_pressure_ratio)*self.pressure
         return True
 
     def entropy(self,T=None):
@@ -88,14 +117,35 @@ class Gas():
             G += molecule.partial_pressure * molecule.gibbs(T=T)
         return G
 
+    def get_partial_pressure(self,test_molecule):
+        result = 0.0
+        for molecule in self.molecules:
+            if molecule == test_molecule:
+                result = molecule.partial_pressure
+        return result
+
+    def get_mol_pressure(self,test_molecule):
+        result = 0.0
+        for molecule in self.molecules:
+            if molecule == test_molecule:
+                result = molecule.pressure
+        return result
+
 if __name__ == '__main__':
     print 'Start gas.py'
     import known_molecules as km
     gas_1 = Gas([km.CO,km.CO2,km.H2,km.H2O],[0.0,0.25,0.75,0.0],pressure=2.0,temperature=310)
+    gas_2 = Gas([km.CO,km.O2,km.H2,km.H2O], [0.2,0.2,0.2,0.4],pressure=2.0,temperature=310)
+    gas_3 = Gas([km.CO,km.CO2,km.O2,km.H2,km.H2O],[0.1,0.125,0.1,0.475,0.2],pressure=4.0,temperature=310)
     
     print gas_1.list_of_atoms()
     print gas_1.gas_atom_composition()
 
     print gas_1.gas_equlibrium()
     print 'Gibbs: ' + str(gas_1.gibbs())
+
+    print 'add test'
+    gas_4 = gas_1 + gas_2
+    print gas_4.get_partial_pressure(km.O2)
+    
     

@@ -1,47 +1,30 @@
 
 import molecule
 class Gas():
-    def __init__(self,molecules,partial_pressure_ratio=None,pressure=None,temperature=None):
-        self.molecules = molecules
-        self.partial_pressure_ratio = partial_pressure_ratio
-        self.pressure = float(pressure)
-        self.temperature = float(temperature)
-        if self.partial_pressure_ratio == None:
-            print 'ERROR - Partial pressure needed'
-        if self.pressure == None:
-            self.pressure = 1.0 #bar
+    def __init__(self,partial_pressures,temperature=None):
+        self.partial_pressures = partial_pressures
+        self.temperature = temperature
         if self.temperature == None:
             self.temperature = 300 #K
-        for i in range(len(self.molecules)):
-            self.molecules[i].partial_pressure = partial_pressure_ratio[i]
 
     def __add__(self,other):
-        self.assign_pressure_to_molecule()
-        other.assign_pressure_to_molecule()
-        pressure = self.pressure + other.pressure
+        partial_pressures = self.partial_pressures
+        for mol in other.partial_pressures.keys():
+            try:
+                partial_pressures[mol] += other.partial_pressures[mol]
+            except KeyError:
+                partial_pressures[mol] = other.partial_pressures[mol]
+            #del other.partial_pressures[mol]
         temperature = 0.5*(self.temperature + other.temperature)
-        #M = self.molecules + other.molecules
-        #P = self.partial_pressure_ratio + other.partial_pressure_ratio
-        molecules = []
-        for mol in self.molecules:
-            molecules += [mol]
-        partial_pressure_ratio = []
-        for mol in other.molecules:
-            if mol not in self.molecules:
-                molecules += [mol]
-        for mol in molecules:
-            partial_pressure_ratio += [self.get_partial_pressure(mol)*self.pressure/(pressure)+other.get_partial_pressure(mol)*other.pressure/(pressure)]
-        print len(molecules)
-        print sum(partial_pressure_ratio)
-        return Gas(molecules,partial_pressure_ratio,pressure,temperature)
+        return Gas(partial_pressures,temperature)
 
     def __eq__(self,other):
-        if self.pressure == other.pressure:
-            if self.temperature == other.temperature:
-                if self.molecules == other.molecules:
-                    if self.partial_pressure_ratio == other.partial_pressure_ratio:
-                        return True
+        if self.temperature == other.temperature:
+            if self.partial_pressures == other.partial_pressures: # doesnt include 0 pressure
+                return True
         return False
+    def __hash__(self):
+        return None
 
     def gas_equlibrium(self):
         # calculate the equlibrium gas composition given from the initial gas composition, temperature and pressure
@@ -52,20 +35,11 @@ class Gas():
         # line4: sum(self.partial_pressure)=1.0
         # self.assign_pressure_to_molecule()
         
-        return self.partial_pressure_ratio
-    
-    def set_partial_pressure_ratio(self,ppr):
-        if sum(ppr) == 1.0:
-            self.partial_pressure_ratio = ppr
-        else:
-            print 'ERROR - sum of pressure ratio should be 1.0'
-            self.partial_pressure_ratio = ppr / sum(ppr)
-        self.assign_pressure_to_molecule()
-        return self.partial_pressure_ratio
+        return Gas(self.partial_pressures,self.temperature)
 
     def list_of_atoms(self):
         atom_list = {}
-        for molecule in self.molecules:
+        for molecule in self.partial_pressures.keys():
             for element in molecule.atoms:
                 if element.Z in atom_list:
                     atom_list[element.Z] += 1
@@ -74,9 +48,8 @@ class Gas():
         return atom_list
 
     def gas_atom_composition(self):
-        self.assign_pressure_to_molecule()
         atom_list = {}
-        for molecule in self.molecules:
+        for molecule in self.partial_pressures.keys():
             for element in molecule.atoms:
                 if element.Z in atom_list:
                     atom_list[element.Z] += molecule.partial_pressure
@@ -84,19 +57,13 @@ class Gas():
                     atom_list[element.Z] = molecule.partial_pressure
         return atom_list
 
-    def assign_pressure_to_molecule(self):
-        for i in range(len(self.molecules)):
-            self.molecules[i].partial_pressure = self.partial_pressure_ratio[i]/sum(self.partial_pressure_ratio)
-            self.molecules[i].pressure = self.partial_pressure_ratio[i]/sum(self.partial_pressure_ratio)*self.pressure
-        return True
-
     def entropy(self,T=None):
         #do we need to introduce a entropy for the entire gas?
         if T == None:
             T=self.temperature
         S = 0.0
-        for molecule in self.molecules:
-            S += molecule.partial_pressure * molecule.entropy(T=T)
+        for mol in self.partial_pressures.keys():
+            S += self.partial_pressures[mol] * mol.entropy(T=T)
         return S
 
     def enthalpy(self,T=None):
@@ -104,8 +71,8 @@ class Gas():
         if T == None:
             T=self.temperature
         H = 0.0
-        for molecule in self.molecules:
-            H += molecule.partial_pressure * molecule.enthalpy(T=T)
+        for mol in self.partial_pressures.keys():
+            H += self.partial_pressures[mol] * mol.enthalpy(T=T)
         return H
 
     def gibbs(self,T=None):
@@ -113,39 +80,48 @@ class Gas():
         if T == None:
             T=self.temperature
         G = 0.0
-        for molecule in self.molecules:
-            G += molecule.partial_pressure * molecule.gibbs(T=T)
+        for mol in self.partial_pressures.keys():
+            G += self.partial_pressures[mol] * mol.gibbs(T=T)
         return G
 
     def get_partial_pressure(self,test_molecule):
         result = 0.0
-        for molecule in self.molecules:
-            if molecule == test_molecule:
-                result = molecule.partial_pressure
-        return result
-
-    def get_mol_pressure(self,test_molecule):
-        result = 0.0
-        for molecule in self.molecules:
-            if molecule == test_molecule:
-                result = molecule.pressure
-        return result
+        try:
+            result = self.partial_pressures[test_molecule]
+        except KeyError:
+            result = 0.0
+        return result #Bar
 
 if __name__ == '__main__':
     print 'Start gas.py'
     import known_molecules as km
-    gas_1 = Gas([km.CO,km.CO2,km.H2,km.H2O],[0.0,0.25,0.75,0.0],pressure=2.0,temperature=310)
-    gas_2 = Gas([km.CO,km.O2,km.H2,km.H2O], [0.2,0.2,0.2,0.4],pressure=2.0,temperature=310)
-    gas_3 = Gas([km.CO,km.CO2,km.O2,km.H2,km.H2O],[0.1,0.125,0.1,0.475,0.2],pressure=4.0,temperature=310)
-    
-    print gas_1.list_of_atoms()
-    print gas_1.gas_atom_composition()
+    gas_1 = Gas({km.CO: 0.5, km.O2: 0.5, km.CO2: 0.0},temperature=310)
+    gas_2 = Gas({km.CO: 0.0, km.O2: 0.25, km.CO2: 0.5},temperature=310)
+    gas_3 = Gas({km.CO: 0.0, km.CO2: 0.5, km.O2: 0.25},temperature=310)
+    #gas_2 = Gas([km.CO,km.O2,km.H2,km.H2O], [0.2,0.2,0.2,0.4],pressure=2.0,temperature=310)
+    #gas_3 = Gas([km.CO,km.CO2,km.O2,km.H2,km.H2O],[0.1,0.125,0.1,0.475,0.2],pressure=4.0,temperature=310)
 
-    print gas_1.gas_equlibrium()
-    print 'Gibbs: ' + str(gas_1.gibbs())
+    gas_test = {}
+    gas_test[km.CO] = 0.5
+    gas_test[km.O2] = 0.5
+    gas_test[km.CO2] = 0.0
 
-    print 'add test'
-    gas_4 = gas_1 + gas_2
-    print gas_4.get_partial_pressure(km.O2)
+    print 'Test:__eq__()'
+    print 'gas_1 == gas_3: ' + str(gas_1 ==gas_3)
+    print 'gas_2 == gas_3: ' + str(gas_2 ==gas_3)\
+
+    print 'Test:__add__()'
+    print 'gas_1 + gas_3: ' + str(gas_1 + gas_3)
+    print 'gas_2 + gas_3: ' + str(gas_2 + gas_3)
+    print '(gas_1 + gas_2) + (gas_1 + gas_3): ' + str((gas_1 + gas_2) == (gas_1 + gas_3))
+    #print gas_1.list_of_atoms()
+    #print gas_1.gas_atom_composition()
+
+    #print gas_1.gas_equlibrium()
+    #print 'Gibbs: ' + str(gas_1.gibbs())
+
+    #print 'add test'
+    #gas_4 = gas_1 + gas_2
+    #print gas_4.get_partial_pressure(km.O2)
     
     

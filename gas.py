@@ -8,7 +8,7 @@ class Gas():
             self.temperature = 300 #K
 
     def __add__(self,other):
-        partial_pressures = self.partial_pressures
+        partial_pressures = self.partial_pressures.copy()
         for mol in other.partial_pressures.keys():
             try:
                 partial_pressures[mol] += other.partial_pressures[mol]
@@ -17,6 +17,12 @@ class Gas():
             #del other.partial_pressures[mol]
         temperature = 0.5*(self.temperature + other.temperature)
         return Gas(partial_pressures,temperature)
+    def __rmul__(self, other):
+        partial_pressures = self.partial_pressures.copy()
+        for mol in self.partial_pressures.keys():
+            partial_pressures[mol] *= other
+        return Gas(partial_pressures,self.temperature)
+        
 
     def __eq__(self,other):
         if self.temperature == other.temperature:
@@ -52,9 +58,9 @@ class Gas():
         for molecule in self.partial_pressures.keys():
             for element in molecule.atoms:
                 if element.Z in atom_list:
-                    atom_list[element.Z] += molecule.partial_pressure
+                    atom_list[element.Z] += self.partial_pressures[molecule]
                 else:
-                    atom_list[element.Z] = molecule.partial_pressure
+                    atom_list[element.Z] = self.partial_pressures[molecule]
         return atom_list
 
     def entropy(self,T=None):
@@ -91,6 +97,16 @@ class Gas():
         except KeyError:
             result = 0.0
         return result #Bar
+    
+    def get_pressure(self):
+        return sum(self.partial_pressures.values())
+    
+    def set_pressure(self,P_final):
+        P_init = sum(self.partial_pressures.values())
+        for mol in self.partial_pressures.keys():
+            self.partial_pressures[mol] *= P_final / P_init
+        return self.get_pressure()
+        
 
 if __name__ == '__main__':
     print 'Start gas.py'
@@ -114,14 +130,13 @@ if __name__ == '__main__':
     print 'gas_1 + gas_3: ' + str(gas_1 + gas_3)
     print 'gas_2 + gas_3: ' + str(gas_2 + gas_3)
     print '(gas_1 + gas_2) + (gas_1 + gas_3): ' + str((gas_1 + gas_2) == (gas_1 + gas_3))
-    #print gas_1.list_of_atoms()
-    #print gas_1.gas_atom_composition()
 
-    #print gas_1.gas_equlibrium()
-    #print 'Gibbs: ' + str(gas_1.gibbs())
+    print 'Test:get_pressure()'
+    print 'P = ' + str(gas_1.get_pressure())
+    print gas_1.partial_pressures.values()
 
-    #print 'add test'
-    #gas_4 = gas_1 + gas_2
-    #print gas_4.get_partial_pressure(km.O2)
+    print 'Test:set_pressure()'
+    print 'P = ' + str(gas_1.set_pressure(2.0))
+    print gas_1.partial_pressures.values()
     
     

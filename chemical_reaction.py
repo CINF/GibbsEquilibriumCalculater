@@ -32,12 +32,12 @@ class ChemicalReaction():
         
 if __name__ == '__main__':
 
-    reaction = ChemicalReaction([km.CO,km.O2,km.CO2], [km.CO2])
+    reaction = ChemicalReaction([km.CO,km.O2,km.CO], [km.CO2,km.CO2])
     print reaction.list_of_atoms('left')
     print reaction.list_of_atoms('right')
 
     print reaction.is_balanced()
-    """
+    
     left_atoms = {}
     for mol in reaction.left_side:
         elements = mol.list_of_atoms()
@@ -48,4 +48,4 @@ if __name__ == '__main__':
                 left_atoms[element] = elements[element]
 
     print left_atoms
-    """
+    

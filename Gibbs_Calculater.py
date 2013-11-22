@@ -174,6 +174,17 @@ def Equilibrium_NH3((NH3, N2, H2),T,pressure):
             3.0/1.0-(2*H2+3*NH3)/(2*N2+1*NH3),
             1.0 - (NH3+N2+H2)
             )
+def Equilibrium_CH4((CH4, H2O, CO, H2),T,pressure):
+    K_CH4 = K_equilibrium(dG(dH['CH4'],dS['CH4'],T),T)
+    return (K_CH4-(((CH4)*(H2O)) / ((CO) * (H2)**3))*(pressure)**p_factor['CH4'],
+            3*2.0/1.0-(2*H2+2*H2O+4*CH4)/(CO+CH4), #H/C
+            3*2.0/1.0-(2*H2+2*H2O+4*CH4)/(CO+H2O), #H/O
+            1.0 - (CH4 + H2O + CO + H2)
+            )
+def Equilibrium_Ru_CO((cCO),T,pressure):
+    K_Ru_CO = K_equilibrium(dG(dH['Ru_CO'],dS['Ru_CO'],T),T)
+    return (K_Ru_CO-(cCO)*(pressure)**p_factor['Ru_CO']
+            )
 
 def matrix_problem(reduced_list_of_elements,element):
     #print 'matrix_problem'
@@ -233,6 +244,7 @@ def compound_to_be_removed(reduced_list_of_elements,element,grade):
         return element_to_be_removed
     else:
         return 'NaN'
+
 def simple_reaction(reduced_list_of_elements,element,list_of_elements_to_be_removed):
     #print 'simple_reaction'
     #print reduced_list_of_elements, element, list_of_elements_to_be_removed
@@ -373,11 +385,15 @@ dH = {}
 dH['MeOH'] = (H['CH3OH(g)']+H['H2O(g)'])-(H['CO2(g)']+3*H['H2(g)'])
 dH['CO'] = (H['CO(g)']+H['H2O(g)'])-(H['CO2(g)']+H['H2(g)'])
 dH['NH3'] = (H['NH3(g)'])-(0.5*H['N2(g)']+1.5*H['H2(g)'])
+dH['CH4'] = (H['CH4(g)']+H['H2O(g)'])-(3*H['H2(g)']+H['CO(g)'])
+dH['Ru_CO'] = (H['CO(g)']-67500)-(H['CO(g)'])#0.7ev/molecule
 
 dS = {}
 dS['MeOH'] = (S['CH3OH(g)']+S['H2O(g)'])-(S['CO2(g)']+3*S['H2(g)'])
 dS['CO'] = (S['CO(g)']+S['H2O(g)'])-(S['CO2(g)']+S['H2(g)'])
 dS['NH3'] = (S['NH3(g)'])-(0.5*S['N2(g)']+1.5*S['H2(g)'])
+dS['CH4'] = (S['CH4(g)']+S['H2O(g)'])-(3*S['H2(g)']+S['CO(g)'])
+dS['Ru_CO'] = (0.0)-(S['CO(g)'])
 
 print 'dG MeOH: ' + str(dG(dH['MeOH'],dS['MeOH'],500))
 
@@ -385,7 +401,9 @@ p_factor = {}
 p_factor['MeOH'] = -2.0
 p_factor['CO'] = 0.0
 p_factor['NH3'] = -1.0
+p_factor['CH4'] = -2.0
 p_factor['CO(Ru-a)'] = -1.0
+p_factor['Ru_CO'] = -1.0
 
 #pressure = 1.0 #unit bar
 
@@ -404,12 +422,12 @@ for i in range(1):
     print sorted(list_of_elements)
     print len(list_of_elements)
 
-print Equilibrium_RuCO((1.0, 0.1,0.9),300,1.0)
-print 'RuCO'
-print fsolve(Equilibrium_RuCO, (1.0,0.3,0.1 ), args=(300.0, 1.0), xtol=1.49012e-12,maxfev=10000 )
-print 'hej'
-print fsolve(Equilibrium_RuCO, (1.0,0.3,0.7 ), args=(400.0,1.0), xtol=1.49012e-12,maxfev=10000 )
-print fsolve(Equilibrium_RuCO, (1.0,0.1,0.9 ), args=(500.0,1.0), xtol=1.49012e-12,maxfev=10000 )
+#print Equilibrium_RuCO((1.0, 0.1,0.9),300,1.0)
+#print 'RuCO'
+#print fsolve(Equilibrium_RuCO, (1.0,0.3,0.1 ), args=(300.0, 1.0), xtol=1.49012e-12,maxfev=10000 )
+#print 'hej'
+#print fsolve(Equilibrium_RuCO, (1.0,0.3,0.7 ), args=(400.0,1.0), xtol=1.49012e-12,maxfev=10000 )
+#print fsolve(Equilibrium_RuCO, (1.0,0.1,0.9 ), args=(500.0,1.0), xtol=1.49012e-12,maxfev=10000 )
 #print dH['NH3']
 #print dS['NH3']
 temp=298.15
@@ -451,6 +469,31 @@ if False:
     if True:
         axis.semilogy()
         axis.plot(x,y1, 'r',label='MeOH')
+        axis.plot(x,y2, 'g',label='CO')
+        axis.legend(loc='upper right',prop={'size':10})
+        plt.xlim(300,600)
+        #axis.set_ylim(1E-5,1E3)
+        plt.show()
+        print 'Saving'
+if False:
+    x = np.zeros(300)
+    y1 = np.zeros(300)
+    y2 = np.zeros(300)
+    i = 0
+    cCH4, cH2O, cCO, cH2 =  fsolve(Equilibrium_CH4, (0.01, 0.01,0.01,0.97),args=(500,1.0))
+
+    cCH4, cH2O, cCO, cH2 =  fsolve(Equilibrium_CH4, (0.01, 0.01,0.01,0.97),args=(500,1.0))
+    
+    for t in range(300,600):
+        print t
+        cCH4, cH2O, cCO, cH2 =  fsolve(Equilibrium_CH4, (cCH4, cH2O, cCO, cH2),args=(t*1.0,1.0))
+        x[i] = t
+        y1[i] = cCH4
+        y2[i] = cCO
+        i+=1
+    if True:
+        axis.semilogy()
+        axis.plot(x,y1, 'r',label='CH4')
         axis.plot(x,y2, 'g',label='CO')
         axis.legend(loc='upper right',prop={'size':10})
         plt.xlim(300,600)

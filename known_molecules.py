@@ -42,7 +42,8 @@ O2.coeff = [31.32234,  -20.23531,    57.86644,  -36.50624,  -0.007374, -8.903471
 CH4.coeff = [-0.703029,  108.4773,    -42.52157,  5.862788,  0.678565, -76.84376, 158.7163,   -74.87310]  # CH4
 NH3.coeff = [19.99563,  49.77119,   -15.37599,  1.921168, 0.189174, -53.30667, 203.8591,  -45.89806]  # NH3
 
-CH3OH.coeff = [14.1952,  97.7218,  -9.73279,  -12.8461,0.15819 , -209.037, 0.0, -201.102]  # NH3, coeff[6] is missing
+CH3OH.coeff = [14.1952,  97.7218,  -9.73279,  -12.8461,0.15819 , -209.037, 239.9-10.5214587681, -201.102]  # NH3, coeff[6] is missing
+#239.9
 
 H2.enthalpy_t0    = 0.0
 O2.enthalpy_t0    = 0.0
@@ -63,7 +64,13 @@ CH3OH.entropy_t0 = 239.9
 N2.entropy_t0    = 191.61
 NH3.entropy_t0   = 192.778
 
+# reference
+# Shomate Equation
+# http://webbook.nist.gov/cgi/cbook.cgi?ID=C124389&Units=SI&Mask=1#Thermo-Gas
+#http://kitchingroup.cheme.cmu.edu/blog/tag/thermodynamics/
 if __name__ == '__main__':
   print 'Main'
-  print H2.enthalpy_t0
+  print CH3OH.standard_entropy(T=298.15)
+  
+  
 

@@ -33,6 +33,105 @@ reaction2 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.H2O: 1.0}
 #reaction = {km.CO: -1.0, km.H2: -3.0, km.CH4: 1.0, km.H2O: 1.0}
 #print gas.Gas(reaction).gas_atom_composition()
 #{km.H2: -1.0, km.CO: -1.0, km.MeOH: 0.0, km.H2O: 0.0}
+def Methanol(Temperature=None, Pressure=None,NO=None):
+    if Temperature == None:
+        Temperature = 23.0+273.15 # K
+    if Pressure == None:
+        Pressure = 1.0 # bar
+    if NO == None:
+        NO = 5 # bar
+    if True:
+        range_CO = [0.0,0.8]
+        range_CO2 = [0.0,0.8]
+        x = np.linspace(range_CO[0], range_CO[1], NO) # CO/H2
+        y = np.linspace(range_CO2[0], range_CO2[1], NO) # CO2/H2
+        X, Y = np.meshgrid(x, y)
+        result_0 = {}#np.zeros((len(x),len(y)))
+        guess_0 = {}#np.zeros((len(x),len(y)))
+        guess = [0.0,0.0]
+        MeOH = np.zeros((len(x),len(y)))
+        reaction0 = {km.CO2: 0.0, km.H2: -2.0, km.CO: -1.0, km.CH3OH: 1.0, km.H2O: 0.0}
+        reaction1 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.CH3OH: 0.0, km.H2O: 1.0}
+        
+        i=0
+        i_max = len(x)*len(y)
+        time_start = time.time()
+        time_last = time_start
+        max_point_0 = {'MeOH':0.0,'xi':[0,0],'XY':[0.0,0.0]}
+        for xi in range(len(x)):
+            for yi in range(len(y)):
+                amount_of_H2 = float(1.0-float(X[xi,yi]+Y[xi,yi]))
+                amount_of_CO = float(X[xi,yi])
+                amount_of_CO2 = float(Y[xi,yi])
+                gas_0 = gas.Gas({km.H2: amount_of_H2, 
+                                 km.CO: amount_of_CO, 
+                                 km.CO2: amount_of_CO2, 
+                                 km.CH3OH: 0.0, 
+                                 km.H2O: 0.0},temperature=Temperature)
+                gas_0 = gas_0.set_pressure(Pressure)
+                if xi == 0 or yi == 0:
+                    guess = [0.0,0.0]
+                else:
+                    guess = guess_0[X[xi-1,yi-1],Y[xi-1,yi-1]]
+                #print 'guess: ' + str(guess)
+                if amount_of_H2 < 0.0 or amount_of_CO < 0.0 or amount_of_CO2 < 0.0:
+                    MeOH[xi,yi] = 0.0
+                    amount_of_H2, amount_of_CO, amount_of_CO2 = 1.0,0.0,0.0
+                    gas_0 = gas.Gas({km.H2: amount_of_H2, 
+                                 km.CO: amount_of_CO, 
+                                 km.CO2: amount_of_CO2, 
+                                 km.CH3OH: 0.0, 
+                                 km.H2O: 0.0},temperature=Temperature)
+                    gas_0 = gas_0.set_pressure(Pressure)
+                    result_0[X[xi,yi],Y[xi,yi]] = gas_0
+                    guess_0[X[xi,yi],Y[xi,yi]]=[0,0]
+                else:
+                    result_0[X[xi,yi],Y[xi,yi]],guess_0[X[xi,yi],Y[xi,yi]]=gas_0.gas_equlibrium_v2([reaction0,reaction1],guess = guess, T=Temperature)
+                    #print 'guess result: ' + str(guess_0[X[xi,yi],Y[xi,yi]])
+                if (np.array(result_0[X[xi,yi],Y[xi,yi]].partial_pressures.values()) < 0.0).any():
+                    print 'Error negative partial pressure'
+                    #print amount_of_H2, amount_of_CO, amount_of_CO2
+                    print result_0[X[xi,yi],Y[xi,yi]].partial_pressures.values()
+                MeOH[xi,yi]=float(result_0[X[xi,yi],Y[xi,yi]].partial_pressures[km.CH3OH]) # in %
+                if MeOH[xi,yi] > max_point_0['MeOH']:
+                    max_point_0['MeOH'] = MeOH[xi,yi]
+                    max_point_0['xi'] = [xi,yi]
+                    max_point_0['XY'] = [X[xi,yi],Y[xi,yi]]
+                    max_point_0['gas'] = result_0[X[xi,yi],Y[xi,yi]]
+                i +=1
+                if time.time()-time_last > 10.0:
+                    time_last = time.time()
+                    print 'Procent done : ' + str(float(i)/float(i_max)*100)+ ' time: ' + str(time_last-time_start) # + ' working on: ' + str(amount_of_H2)+ str(amount_of_CO)+str(amount_of_CO2)
+        #f = interpolate.interp2d(X, Y, MeOH, kind='sline')
+        #xnew = np.linspace(range_CO[0], range_CO[1], 1000)
+        #ynew = np.linspace(range_CO2[0], range_CO2[1], 1000)
+        #znew = f(xnew, ynew)
+        print max_point_0
+        fig = plt.figure()
+        fig.subplots_adjust(bottom=0.2, left=0.2, right=0.8,top=0.8)
+        fig.set_size_inches(14/2.54,14/2.54)
+        axis = fig.add_subplot(1,1,1)
+        CS = axis.contour(X, Y, MeOH*100/Pressure,[0.125,0.25,0.5,1.0,2.0,4.0,8.0,16.0,32.0,64.0,90.0])
+        #CS = axis.contour(xnew, ynew, znew*100/Pressure,[0.125,0.25,0.5,1.0,2.0,4.0,8.0,16.0])
+        #axis.plot(0.04*(1.0+np.linspace(0,1,100)),np.linspace(0,1,100),'-r')
+        #axis.plot(np.linspace(0,1,100),0.1*(1.0+np.linspace(0,1,100)),'-b')
+        #axis.plot(0.04/0.86,0.1/0.86,'*k')
+        axis.plot([0,1],[1,0],'-k')
+        axis.plot([0,0.9],[0.9,0],'-r')
+        axis.plot([0.7,0.7+(x[1]-x[0]),0.7+(x[1]-x[0])],[0.7,0.7,0.7+(y[1]-y[0])],'-r')
+        axis.plot(max_point_0['XY'][0],max_point_0['XY'][1],'*r')
+        axis.set_xlabel('c(CO)', fontsize=8)
+        axis.set_ylabel('c(CO2)', fontsize=8)
+        axis.text(0.65  ,0.6,'T=%.1fK' %Temperature, fontsize=8)
+        axis.text(0.65,0.5,'T=%.1f$^\circ$C' %(Temperature-273.15), fontsize=8)
+        axis.text(0.65,0.4,'P=%.1fBar' %Pressure, fontsize=8)
+        axis.set_xlim(0*range_CO[0], range_CO[1])
+        axis.set_ylim(0*range_CO2[0], range_CO2[1])
+        plt.clabel(CS,inline=1, fontsize=8)
+        plt.savefig('fig/CS_%.1fK_%.1fbar.'%(Temperature,Pressure)+file_format,dpi=600)
+        fig.clf()
+        plt.close()
+        del fig
 
 if __name__ == '__main__':
     file_format = 'png'
@@ -118,96 +217,9 @@ if __name__ == '__main__':
         plt.close()
         del fig
     if True:
-        Pressure = 2.5 # bar
-        Temperature = 150+273.15 # K
-        range_CO = [0.0,0.8]
-        range_CO2 = [0.0,0.8]
-        NO = 50
-        
-        #delta=MAX/30.0
-        x = np.linspace(range_CO[0], range_CO[1], NO) # CO/H2
-        y = np.linspace(range_CO2[0], range_CO2[1], NO) # CO2/H2
-        X, Y = np.meshgrid(x, y)
-        result_0 = {}#np.zeros((len(x),len(y)))
-        MeOH = np.zeros((len(x),len(y)))
-        reaction0 = {km.CO2: 0.0, km.H2: -2.0, km.CO: -1.0, km.CH3OH: 1.0, km.H2O: 0.0}
-        reaction1 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.CH3OH: 0.0, km.H2O: 1.0}
-        #reaction1 = {km.CO2: -1.0, km.H2: -3.0, km.CO: 0.0, km.CH3OH: 1.0, km.H2O: 1.0}
-        #reaction2 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.CH3OH: 0.0, km.H2O: 1.0}
-        #reaction3 = {km.CO2: -0.0, km.H2: -2.0, km.CO: -1.0, km.CH3OH: 1.0, km.H2O: 0.0}
-        #reaction4 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.CH3OH: 0.0, km.H2O: 1.0}
-        
-        i=0
-        i_max = len(x)*len(y)
-        time_start = time.time()
-        time_last = time_start
-        max_point_0 = {'MeOH':0.0,'xi':[0,0],'XY':[0.0,0.0]}
-        for xi in range(len(x)):
-            for yi in range(len(y)):
-                amount_of_H2 = float(1.0-float(X[xi,yi]+Y[xi,yi]))
-                amount_of_CO = float(X[xi,yi])
-                amount_of_CO2 = float(Y[xi,yi])
-                gas_0 = gas.Gas({km.H2: amount_of_H2, 
-                                 km.CO: amount_of_CO, 
-                                 km.CO2: amount_of_CO2, 
-                                 km.CH3OH: 0.0, 
-                                 km.H2O: 0.0},temperature=Temperature)
-                gas_0 = gas_0.set_pressure(Pressure)
-                if amount_of_H2 < 0.1 or amount_of_CO < 0.0 or amount_of_CO2 < 0.0:
-                    MeOH[xi,yi] = 0.0
-                    amount_of_H2, amount_of_CO, amount_of_CO2 = 1.0,0.0,0.0
-                    gas_0 = gas.Gas({km.H2: amount_of_H2, 
-                                 km.CO: amount_of_CO, 
-                                 km.CO2: amount_of_CO2, 
-                                 km.CH3OH: 0.0, 
-                                 km.H2O: 0.0},temperature=Temperature)
-                    gas_0 = gas_0.set_pressure(Pressure)
-                    result_0[X[xi,yi],Y[xi,yi]] = gas_0
-                else:
-                    result_0[X[xi,yi],Y[xi,yi]]=gas_0.gas_equlibrium_v2([reaction0,reaction1],T=Temperature)
-                if (np.array(result_0[X[xi,yi],Y[xi,yi]].partial_pressures.values()) < -1E-12).any():
-                    print 'Error negative partial pressure'
-                    print amount_of_H2, amount_of_CO, amount_of_CO2
-                MeOH[xi,yi]=float(result_0[X[xi,yi],Y[xi,yi]].partial_pressures[km.CH3OH]) # in %
-                if MeOH[xi,yi] > max_point_0['MeOH']:
-                    max_point_0['MeOH'] = MeOH[xi,yi]
-                    max_point_0['xi'] = [xi,yi]
-                    max_point_0['XY'] = [X[xi,yi],Y[xi,yi]]
-                    max_point_0['gas'] = result_0[X[xi,yi],Y[xi,yi]]
-                i +=1
-                if time.time()-time_last > 10.0:
-                    time_last = time.time()
-                    print 'Procent done : ' + str(float(i)/float(i_max)*100)+ ' time: ' + str(time_last-time_start) # + ' working on: ' + str(amount_of_H2)+ str(amount_of_CO)+str(amount_of_CO2)
-        #f = interpolate.interp2d(X, Y, MeOH, kind='sline')
-        #xnew = np.linspace(range_CO[0], range_CO[1], 1000)
-        #ynew = np.linspace(range_CO2[0], range_CO2[1], 1000)
-        #znew = f(xnew, ynew)
-        print max_point_0
-        fig = plt.figure()
-        fig.subplots_adjust(bottom=0.2, left=0.2, right=0.8,top=0.8)
-        fig.set_size_inches(14/2.54,14/2.54)
-        axis = fig.add_subplot(1,1,1)
-        CS = axis.contour(X, Y, MeOH*100/Pressure,[0.125,0.25,0.5,1.0,2.0,4.0,8.0,16.0])
-        #CS = axis.contour(xnew, ynew, znew*100/Pressure,[0.125,0.25,0.5,1.0,2.0,4.0,8.0,16.0])
-        #axis.plot(0.04*(1.0+np.linspace(0,1,100)),np.linspace(0,1,100),'-r')
-        #axis.plot(np.linspace(0,1,100),0.1*(1.0+np.linspace(0,1,100)),'-b')
-        #axis.plot(0.04/0.86,0.1/0.86,'*k')
-        axis.plot([0,1],[1,0],'-k')
-        axis.plot([0,0.9],[0.9,0],'-r')
-        axis.plot([0.7,0.7+(x[1]-x[0]),0.7+(x[1]-x[0])],[0.7,0.7,0.7+(y[1]-y[0])],'-r')
-        axis.plot(max_point_0['XY'][0],max_point_0['XY'][1],'*r')
-        axis.set_xlabel('c(CO)', fontsize=8)
-        axis.set_ylabel('c(CO2)', fontsize=8)
-        axis.text(0.65  ,0.6,'T=%.1fK' %Temperature, fontsize=8)
-        axis.text(0.65,0.5,'T=%.1f$^\circ$C' %(Temperature-273.15), fontsize=8)
-        axis.text(0.65,0.4,'P=%.1fBar' %Pressure, fontsize=8)
-        axis.set_xlim(0*range_CO[0], range_CO[1])
-        axis.set_ylim(0*range_CO2[0], range_CO2[1])
-        plt.clabel(CS,inline=1, fontsize=8)
-        plt.savefig('CS_%.1fK.'%Temperature+file_format,dpi=600)
-        fig.clf()
-        plt.close()
-        del fig
+        for Temperature in [300,350,400,450,500,550]:
+            for Pressure in [0.5,1.0,1.5,2.0,2.5]:
+                Methanol(Temperature=None, Pressure=Pressure,NO=50)
     if False: # fig 6.5
         Pressure = 2.5 # bar
         Temperature = 150+273.15 # K

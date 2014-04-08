@@ -101,27 +101,49 @@ class Gas():
             temperature = T
         Pressure = self.get_pressure()
         gas_0 = Gas(self.partial_pressures,temperature)
-        guess = [0.0,0.0]
         gas_result = gas_0
+        gibbs_start = gas_result.gibbs(T=temperature)
+        gibbs_last = gibbs_start
         gas_reaction = []
         for reaction in reactions:
             gas_reaction.append(Gas(reaction,temperature=temperature))
-        gibbs_start = gas_result.gibbs(T=temperature)
-        guess_last = guess
-        gibbs_last = gibbs_start
-        step = 0.1
+        if guess == None:
+            guess = [0.0,0.0]
+            guess_last = guess
+            guess_test = guess
+        else:
+            guess_test = guess
+            gas_temp = (gas_0 + guess[0]*gas_reaction[0] + guess[1]*gas_reaction[1])
+            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all():
+                gas_test = gas_temp.set_pressure(Pressure)
+                gibbs_test =  gas_test.gibbs(T=temperature)
+                if gibbs_test <  gibbs_last:
+                    guess_last = guess
+                    gibbs_last = gibbs_test
+                    gas_result = gas_test
+                else:
+                    guess = [0.0,0.0]
+                    guess_last = guess
+            else:
+                guess = [0.0,0.0]
+                guess_last = guess
+        number_of_steps = 0
+        number_of_succes = 0
+        step = 0.01
         n = 0
         m = 0
         for i in range(1000):
             guess_test = np.array(guess_last) + (step*(np.random.randn(1)))
-            gas_temp = (gas_0 + guess_test[0]*gas_reaction[0])
+            gas_test = (gas_0 + guess_test[0]*gas_reaction[0])
             n += 1
-            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all():
-                gas_test = gas_temp.set_pressure(Pressure)
+            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
+                gas_test.set_pressure(Pressure)
                 gibbs_test =  gas_test.gibbs(T=temperature)
-                if gibbs_test <  gibbs_last != (np.array(gas_test.partial_pressures.values()) < 0.0 ).any():
+                if gibbs_test <  gibbs_last:
                     guess_last = guess_test
                     gibbs_last = gibbs_test
+                    gas_result = gas_test
+                    number_of_succes +=1
                     n=0
                     m=0
             if n > 10:
@@ -130,19 +152,22 @@ class Gas():
                 step *=0.5
             if m > 5 or step < 1E-9:
                 break
-        step = 0.1
+        number_of_steps+=i
+        step = 0.01
         n = 0
         m = 0
         for i in range(1000):
             guess_test = np.array(guess_last) + (step*(np.random.randn(1)))
-            gas_temp = (gas_0 + guess_test[1]*gas_reaction[1])
+            gas_test = (gas_0 + guess_test[1]*gas_reaction[1])
             n += 1
-            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all():
-                gas_test = gas_temp.set_pressure(Pressure)
+            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
+                gas_test.set_pressure(Pressure)
                 gibbs_test =  gas_test.gibbs(T=temperature)
-                if gibbs_test <  gibbs_last != (np.array(gas_test.partial_pressures.values()) < 0.0 ).any():
+                if gibbs_test <  gibbs_last:
                     guess_last = guess_test
                     gibbs_last = gibbs_test
+                    gas_result = gas_test
+                    number_of_succes +=1
                     n=0
                     m=0
             if n > 10:
@@ -151,28 +176,33 @@ class Gas():
                 step *=0.5
             if m > 5 or step < 1E-9:
                 break
+        number_of_steps+=i
         step = 0.1
         n = 0
         m = 0
         for i in range(5000):
             guess_test = np.array(guess_last) + (step*(np.random.randn(2)))
-            gas_temp = (gas_0 + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
+            gas_test = (gas_0 + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
             n += 1
-            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all():
-                gas_test = gas_temp.set_pressure(Pressure)
+            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
+                gas_test.set_pressure(Pressure)
                 gibbs_test =  gas_test.gibbs(T=temperature)
-                if gibbs_test <  gibbs_last != (np.array(gas_test.partial_pressures.values()) < 0.0 ).any():
+                if gibbs_test <  gibbs_last:
                     guess_last = guess_test
                     gibbs_last = gibbs_test
+                    gas_result = gas_test
+                    number_of_succes +=1
                     n=0
                     m=0
             if n > 10:
                 n = 0
                 m +=1
                 step *=0.5
-            if m > 5 or step < 1E-9:
+            if m > 10 or step < 1E-9:
                 break
-        return (gas_0 + guess_last[0]*gas_reaction[0] + guess_last[1]*gas_reaction[1]).set_pressure(Pressure)
+        number_of_steps+=i
+        print 'Total number of steps: ' + str(number_of_succes) + ' / ' + str(number_of_steps)
+        return gas_result, guess_last
             
 
     def list_of_atoms(self):

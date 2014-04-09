@@ -16,6 +16,8 @@ class Gas():
         self.volume = 1.0
         if self.temperature == None:
             self.temperature = 300 #K
+        else:
+            self.temperature = temperature
 
     def __add__(self,other):
         partial_pressures = copy.deepcopy(self.partial_pressures)
@@ -27,6 +29,7 @@ class Gas():
             #del other.partial_pressures[mol]
         temperature = 0.5*(self.temperature + other.temperature)
         return Gas(partial_pressures,temperature)
+
     def __rmul__(self, other):
         #print '__rmul__ ' + str(other)
         partial_pressures = copy.deepcopy(self.partial_pressures)
@@ -39,90 +42,40 @@ class Gas():
             if self.partial_pressures == other.partial_pressures: # doesnt include 0 pressure
                 return True
         return False
+
     def __hash__(self):
         return None
 
-    def gas_equlibrium(self,reactions,T=None):
-        if T == None:
-            temperature=self.temperature
-        else:
-            temperature = T
-        Pressure = self.get_pressure()
-        gas_0 = Gas(self.partial_pressures,temperature)
-        gas_reaction = []
-        x0 = []
-        for reaction in reactions:
-            gas_reaction.append(Gas(reaction,temperature=temperature))
-            x0.append(0.0)
         
-        bd1 = min([abs(gas_0.partial_pressures[km.CO2]/gas_reaction[1].partial_pressures[km.CO2]),abs(gas_0.partial_pressures[km.H2]/gas_reaction[1].partial_pressures[km.H2])])
-        bd0 = min([abs(gas_0.partial_pressures[km.H2]/gas_reaction[0].partial_pressures[km.H2]),abs(gas_0.partial_pressures[km.CO]+bd1)])
-        #print bd0, bd1
-        gas_sum = lambda delta_P : ((gas_0 + delta_P[0]*gas_reaction[0] + delta_P[1]*gas_reaction[1]).set_pressure(Pressure))
-        validate = lambda delta_P: gas_0 if (np.array(gas_sum(delta_P).partial_pressures.values()) < -1e-12).any() else gas_sum(delta_P)
-        fun = lambda delta_P: gas_sum(delta_P).gibbs(T=temperature)
-        #result =  scipy.optimize.minimize_scalar(fun,bounds=(0.0, 0.25), method='Bounded')
-        #x0 = [0.001,0.001]
-        bds = ((0.0,bd0),(0.0,bd1))
-        if bd0 == 0.0 and bd1 == 0.0:
-            print 'no reaction can occure'
-            return gas_0
-        cons = []
-        for mol in self.partial_pressures.keys():
-            cons.append({'type': 'ineq', 'fun': lambda x: gas_0.partial_pressures[mol] + x[0]*reactions[0][mol] + x[1]*reactions[1][mol]},)
-        for i in range(len(reactions)):
-            cons.append({'type': 'ineq', 'fun': lambda delta_P:  delta_P[i]-0.0},)
-        cons.append({'type': 'ineq', 'fun': lambda x:  bd1-x[1]},)
-        cons.append({'type': 'ineq', 'fun': lambda x:  bd0-x[0]},)
-        #print bd0, bd1
-        
-        #cons = ({'type': 'eq', 'fun': lambda delta_P:  sum([abs(gas_0.gas_atom_composition(option = 'nomarlized')[key]**2 - validate(delta_P).gas_atom_composition(option = 'nomarlized')[key]**2) for key in (gas_0).gas_atom_composition(option = 'nomarlized').keys()])},)
-        #cons = ({'type': 'eq', 'fun': lambda delta_P:  sum([abs(gas_sum(delta_P).partial_pressures[key]) for key in (gas_0).partial_pressures.keys()])-sum(gas_0.partial_pressures.values())},)
-        #    {'type': 'eq', 'fun': lambda delta_P:  sum([abs(validate(delta_P).partial_pressures()[key]) for key in (gas_0).partial_pressures().keys()]) - sum(gas_0.partial_pressures.values())},)
-        result =  scipy.optimize.minimize(fun,[bd0*0.5,bd1*0.5],bounds=bds,constraints=cons, method='COBYLA',tol=1E-9) #L-BFGS-B COBYLA options={'gtol': 1e-9, 'disp': False}constraints=cons, L-BFGS-B
-        #print 'Message: ' + str(result.message)
-        gas_result = gas_sum(result.x)
-        if (np.array(gas_sum(result.x).partial_pressures.values()) < -1e-12).any() or sum([abs(gas_sum(result.x).partial_pressures[mol]) for mol in gas_sum(result.x).partial_pressures.keys()]) < (Pressure-1E-6):
-            print 'constraints Error'
-            gas_result = gas_0
-            print 'Bounds: ' + str([bd0,bd1])
-            print 'Result: ' + str(result.x)
-            print 'Cons: ' + str(result.message)
-            print 'ini Partial pressures: ' + str(gas_sum([bd0*0.5,bd1*0.5]).partial_pressures.values())
-            print 'fin Partial pressures: ' + str(gas_sum(result.x).partial_pressures.values())
-            #print sum([abs(gas_sum(result.x).partial_pressures[key]) for key in (gas_0).partial_pressures.keys()])-sum(gas_0.partial_pressures.values())
-        #if gas_sum([bd0*0.5,bd1*0.5])
-        print gas_result.gibbs(T=temperature)
-        return gas_result
     def gas_equlibrium_v2(self,reactions,guess = None,T=None):
         if T == None:
             temperature=self.temperature
         else:
             temperature = T
         Pressure = self.get_pressure()
-        gas_0 = Gas(self.partial_pressures,temperature)
-        gas_result = gas_0
-        gibbs_start = gas_result.gibbs(T=temperature)
+        gas_0 = Gas(self.partial_pressures,temperature) # Initial gas composition
+        gas_result = gas_0 # Equilibrated gas composition
+        gibbs_start = gas_result.gibbs(T=temperature) # Gibbs energy of gas
         gibbs_last = gibbs_start
         gas_reaction = []
         for reaction in reactions:
             gas_reaction.append(Gas(reaction,temperature=temperature))
         if guess == None:
             guess = [0.0,0.0]
-            guess_last = guess
-            guess_test = guess
-        else:
+            guess_last = guess # The latest guess
+            guess_test = guess # The current guess (random)
+        else: # Check that the provided guess is valid
             guess_test = guess
             gas_temp = (gas_0 + guess[0]*gas_reaction[0] + guess[1]*gas_reaction[1])
-            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all():
-                gas_test = gas_temp.set_pressure(Pressure)
-                gibbs_test =  gas_test.gibbs(T=temperature)
+            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
+                gas_test = gas_temp.set_pressure(Pressure) # Scale partial pressures to overall pressure
+                gibbs_test = gas_test.gibbs(T=temperature)
                 if gibbs_test <  gibbs_last:
                     guess_last = guess
                     gibbs_last = gibbs_test
                     gas_result = gas_test
                 else:
-                    guess = [0.0,0.0]
+                    guess = [0.0,0.0] # Consider to return an error if input guess is not accepted
                     guess_last = guess
             else:
                 guess = [0.0,0.0]
@@ -133,10 +86,10 @@ class Gas():
         n = 0
         m = 0
         for i in range(1000):
-            guess_test = np.array(guess_last) + (step*(np.random.randn(1)))
+            guess_test = np.array(guess_last) + (step*(np.random.randn(1))) # Make a random pertubation
             gas_test = (gas_0 + guess_test[0]*gas_reaction[0])
             n += 1
-            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
+            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
                 gas_test.set_pressure(Pressure)
                 gibbs_test =  gas_test.gibbs(T=temperature)
                 if gibbs_test <  gibbs_last:

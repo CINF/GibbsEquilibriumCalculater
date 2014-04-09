@@ -53,32 +53,34 @@ class Gas():
         else:
             temperature = T
         Pressure = self.get_pressure()
-        gas_0 = Gas(self.partial_pressures,temperature) # Initial gas composition
-        gas_result = gas_0 # Equilibrated gas composition
+        gas_result = Gas(self.partial_pressures,temperature) # Equilibrated gas composition
         gibbs_start = gas_result.gibbs(T=temperature) # Gibbs energy of gas
         gibbs_last = gibbs_start
         gas_reaction = []
         for reaction in reactions:
             gas_reaction.append(Gas(reaction,temperature=temperature))
         if guess == None:
-            guess = [0.0,0.0]
+            guess = np.array([0.0,0.0])
             guess_last = guess # The latest guess
             guess_test = guess # The current guess (random)
         else: # Check that the provided guess is valid
-            guess_test = guess
-            gas_temp = (gas_0 + guess[0]*gas_reaction[0] + guess[1]*gas_reaction[1])
-            if (np.array(gas_temp.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
-                gas_test = gas_temp.set_pressure(Pressure) # Scale partial pressures to overall pressure
+            guess = np.array(guess)
+            guess_test = np.array(guess)
+            gas_test = (self + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
+            if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
+                gas_test.set_pressure(Pressure) # Scale partial pressures to overall pressure
                 gibbs_test = gas_test.gibbs(T=temperature)
-                if gibbs_test <  gibbs_last:
-                    guess_last = guess
+                if  gibbs_test <  gibbs_last:
+                    guess_last = guess_test
                     gibbs_last = gibbs_test
                     gas_result = gas_test
                 else:
-                    guess = [0.0,0.0] # Consider to return an error if input guess is not accepted
+                    print 'guess was NOT better than initial gas'
+                    guess = np.array([0.0,0.0]) # Consider to return an error if input guess is not accepted
                     guess_last = guess
             else:
-                guess = [0.0,0.0]
+                print 'guess was not valid'
+                guess = np.array([0.0,0.0])
                 guess_last = guess
         number_of_steps = 0
         number_of_succes = 0
@@ -86,8 +88,8 @@ class Gas():
         n = 0
         m = 0
         for i in range(1000):
-            guess_test = np.array(guess_last) + (step*(np.random.randn(1))) # Make a random pertubation
-            gas_test = (gas_0 + guess_test[0]*gas_reaction[0])
+            guess_test = guess_last + step*np.random.randn(1) # Make a random pertubation
+            gas_test = (self + guess_test[0]*gas_reaction[0])
             n += 1
             if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
                 gas_test.set_pressure(Pressure)
@@ -103,15 +105,16 @@ class Gas():
                 n = 0
                 m +=1
                 step *=0.5
-            if m > 5 or step < 1E-9:
+            if m > 20 or step < 1E-9:
+                print i, n, m, number_of_succes
                 break
         number_of_steps+=i
         step = 0.01
         n = 0
         m = 0
         for i in range(1000):
-            guess_test = np.array(guess_last) + (step*(np.random.randn(1)))
-            gas_test = (gas_0 + guess_test[1]*gas_reaction[1])
+            guess_test = guess_last + step*np.random.randn(1)
+            gas_test = (self + guess_test[1]*gas_reaction[1])
             n += 1
             if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
                 gas_test.set_pressure(Pressure)
@@ -127,15 +130,16 @@ class Gas():
                 n = 0
                 m +=1
                 step *=0.5
-            if m > 5 or step < 1E-9:
+            if m > 20 or step < 1E-9:
+                print i, n, m, number_of_succes
                 break
         number_of_steps+=i
         step = 0.1
         n = 0
         m = 0
         for i in range(5000):
-            guess_test = np.array(guess_last) + (step*(np.random.randn(2)))
-            gas_test = (gas_0 + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
+            guess_test = guess_last + step*np.random.randn(2)
+            gas_test = (self + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
             n += 1
             if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all():
                 gas_test.set_pressure(Pressure)
@@ -151,7 +155,8 @@ class Gas():
                 n = 0
                 m +=1
                 step *=0.5
-            if m > 10 or step < 1E-9:
+            if m > 20 or step < 1E-9:
+                print i, n, m, number_of_succes
                 break
         number_of_steps+=i
         print 'Total number of steps: ' + str(number_of_succes) + ' / ' + str(number_of_steps)
@@ -283,19 +288,19 @@ if __name__ == '__main__':
     Pressure = 2.5
     reaction1 = {km.CO2: 0.0, km.H2: -2.0, km.CO: -1.0, km.CH3OH: 1.0, km.H2O: 0.0}
     reaction2 = {km.CO2: -1.0, km.H2: -1.0, km.CO: 1.0, km.CH3OH: 0.0, km.H2O: 1.0}
-    amount_of_CO = 0.1
-    amount_of_CO2 = 0.1
+    amount_of_CO = 0.3
+    amount_of_CO2 = 0.3
     amount_of_H2 = float(1.0-float(amount_of_CO+amount_of_CO2))
     gas_0 = Gas({km.H2: amount_of_H2, 
                      km.CO: amount_of_CO,
                      km.CO2: amount_of_CO2,
                      km.CH3OH: 0.0,
                      km.H2O: 0.0},temperature=Temperature)
-    gas_0 = gas_0.set_pressure(Pressure)
-    gas_1 = gas_0.gas_equlibrium([reaction1,reaction2],T=Temperature)
-    print gas_1.partial_pressures.values()
-    gas_2 = gas_0.gas_equlibrium_v2([reaction1,reaction2],T=Temperature)
-    print gas_2.partial_pressures.values()
+    gas_0.set_pressure(Pressure)
+    eq_result_0 = gas_0.gas_equlibrium_v2([reaction1,reaction2],guess=[0.3,0.3],T=Temperature)
+    print eq_result_0
+    eq_result_2 = gas_0.gas_equlibrium_v2([reaction1,reaction2],T=Temperature)
+    print eq_result_2
     #gas_0.gas_equlibrium(reaction,T=310)
     #gas_reaction = Gas(reaction,temperature=Temperature)
     #gas_sum = lambda delta_P : gas_1 + delta_P*gas_reaction

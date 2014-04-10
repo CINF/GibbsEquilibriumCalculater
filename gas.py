@@ -87,13 +87,13 @@ class Gas():
         step = 0.01
         n = 0
         m = 0
-        for i in range(1000):
+        for i in range(1000): #Rewrite this to a while loop #Optimization for CO
             guess_test = guess_last + step*np.random.randn(1) # Make a random pertubation
             gas_test = (self + guess_test[0]*gas_reaction[0])
             n += 1
             if (np.array(gas_test.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
                 gas_test.set_pressure(Pressure)
-                gibbs_test =  gas_test.gibbs(T=temperature)
+                gibbs_test = gas_test.gibbs(T=temperature)
                 if gibbs_test <  gibbs_last:
                     guess_last = guess_test
                     gibbs_last = gibbs_test
@@ -101,18 +101,18 @@ class Gas():
                     number_of_succes +=1
                     n=0
                     m=0
-            if n > 10:
+            if n > 10: # Decrease step size efter every 10'th non-succesfull steps
                 n = 0
                 m +=1
-                step *=0.5
-            if m > 20 or step < 1E-9:
+                step *= 0.5
+            if m > 20 or step < 1E-9: # If decreasing step size does not help, optimization is done
                 print i, n, m, number_of_succes
                 break
         number_of_steps+=i
         step = 0.01
         n = 0
         m = 0
-        for i in range(1000):
+        for i in range(1000): #Rewrite this to a while loop #Optimization for CO2
             guess_test = guess_last + step*np.random.randn(1)
             gas_test = (self + guess_test[1]*gas_reaction[1])
             n += 1
@@ -137,7 +137,7 @@ class Gas():
         step = 0.1
         n = 0
         m = 0
-        for i in range(5000):
+        for i in range(5000): # This is the only correct loop, must check if any partial pressures is 0.0
             guess_test = guess_last + step*np.random.randn(2)
             gas_test = (self + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
             n += 1

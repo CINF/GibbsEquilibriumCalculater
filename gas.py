@@ -88,11 +88,11 @@ class Gas():
                     gas_result = gas_test
                 else:
                     print 'guess was NOT better than initial gas'
-                    print '%.3f < %.3f is False' %(gibbs_test,  gibbs_last)
+                    print '%.3f < %.3f is False' %(gas_test.gibbs(),  gas_result.gibbs())
                     guess = np.array([0.0,0.0]) # Consider to return an error if input guess is not accepted
                     guess_last = guess
             else:
-                print 'guess was not valid'
+                print 'guess was not valid' + str(guess)
                 guess = np.array([0.0,0.0])
                 guess_last = guess
         number_of_steps = 0
@@ -104,13 +104,13 @@ class Gas():
             m = 0
             crit = True
             guess_is_valid = False
-            if (guess_last < 0.0).any():
-                    print 'negative guess_last: ' + str(guess_last) + str(guess_test)
             while crit == True: #Optimization for 1 reaction
                 n += 1
                 i+=1
                 guess_test = np.array(guess_last) # to prevent point reference
-                guess_test[re_no] += step*np.random.randn(1)
+                if guess_is_valid == False:
+                    random_step = step*np.random.randn(1)
+                guess_test[re_no] += random_step
                 gas_test = (self + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
                     #gas_test = self
                     #for re_no_i in range(len(reactions)):
@@ -135,8 +135,8 @@ class Gas():
                     n = 0
                     m +=1
                     step *=0.5
-                if m > 20 or step < 1E-9:
-                    print i, number_of_succes, step, guess_last
+                if m > 20 or step < 1E-4:
+                    #print i, number_of_succes, step, guess_last
                     crit = False
             number_of_steps+=i
         i = 0
@@ -144,8 +144,11 @@ class Gas():
         n = 0
         m = 0
         crit = True
+        guess_is_valid = False
         while crit == True: # This is the only correct loop, must check if any partial pressures is 0.0
-            guess_test = np.array(guess_last) + step*np.random.randn(len(reactions))
+            if guess_is_valid == False:
+                random_step = step*np.random.randn(len(reactions))
+            guess_test = np.array(guess_last) + random_step
             gas_test = (self + guess_test[0]*gas_reaction[0] + guess_test[1]*gas_reaction[1])
             #gas_test = self
             #for re_no_i in range(len(reactions)):
@@ -160,12 +163,17 @@ class Gas():
                     number_of_succes +=1
                     n=0
                     m=0
+                    guess_is_valid = True
+                else:
+                    guess_is_valid = False
+            else:
+                guess_is_valid = False
             if n > 10:
                 n = 0
                 m +=1
-                step *=0.1
-            if m > 20 or step < 1E-12:
-                print i, number_of_succes, step, guess_last
+                step *=0.5
+            if m > 20 or step < 1E-6 or i > 5000:
+                #print i, number_of_succes, step, guess_last
                 crit = False
             i += 1
             n += 1

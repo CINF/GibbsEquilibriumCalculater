@@ -63,6 +63,7 @@ def Methanol(Temperature=None, Pressure=None,NO=None, gas_start=None):
         max_point_0 = {'MeOH':0.0,'xi':[0,0],'XY':[0.0,0.0]}
         for xi in range(len(x)):
             for yi in range(len(y)):
+                #print 'cordinates: ' + str(xi) + ', ' + str(yi)
                 X[xi,yi] = x[xi]
                 Y[xi,yi] = y[yi]
                 gas_0 = gas.Gas(gas_start,temperature=Temperature)
@@ -110,7 +111,7 @@ if __name__ == '__main__':
     file_format = 'png'
     Pressure = 1.0
     Temperature = 150.0+273.15
-    for x in np.linspace(0.0,0.5,10):
+    for x in np.linspace(0.0,0.5,20):
         print x
         amount_of_CO = x
         amount_of_CO2 = x
@@ -121,4 +122,4 @@ if __name__ == '__main__':
                      km.CH3OH: 0.0, 
                      km.H2O: 0.0}
         #gas_start.set_pressure(Pressure)
-        Methanol(Temperature=Temperature, Pressure=Pressure,NO=200,gas_start=gas_start)
+        Methanol(Temperature=Temperature, Pressure=Pressure,NO=50,gas_start=gas_start)

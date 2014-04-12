@@ -41,8 +41,8 @@ def Methanol(Temperature=None, Pressure=None,NO=None):
     if NO == None:
         NO = 5 # bar
     if True:
-        range_CO = [0.0,0.8]
-        range_CO2 = [0.0,0.8]
+        range_CO = [0.0,0.4]
+        range_CO2 = [0.0,0.4]
         x = np.linspace(range_CO[0], range_CO[1], NO) # CO/H2
         y = np.linspace(range_CO2[0], range_CO2[1], NO) # CO2/H2
         X, Y = np.meshgrid(x, y)
@@ -60,6 +60,9 @@ def Methanol(Temperature=None, Pressure=None,NO=None):
         max_point_0 = {'MeOH':0.0,'xi':[0,0],'XY':[0.0,0.0]}
         for xi in range(len(x)):
             for yi in range(len(y)):
+                print 'cordinates: ' + str(xi) + ', ' + str(yi)
+                X[xi,yi] = x[xi]
+                Y[xi,yi] = y[yi]
                 amount_of_H2 = float(1.0-float(X[xi,yi]+Y[xi,yi]))
                 amount_of_CO = float(X[xi,yi])
                 amount_of_CO2 = float(Y[xi,yi])
@@ -217,9 +220,9 @@ if __name__ == '__main__':
         plt.close()
         del fig
     if True:
-        for Temperature in [300,350,400,450,500,550]:
-            for Pressure in [0.5,1.0,1.5,2.0,2.5]:
-                Methanol(Temperature=None, Pressure=Pressure,NO=50)
+        for Temperature in [300,350,400,450,500]:
+            for Pressure in [1.0,2.0,4.0,8.0]:
+                Methanol(Temperature=Temperature, Pressure=Pressure,NO=40)
     if False: # fig 6.5
         Pressure = 2.5 # bar
         Temperature = 150+273.15 # K

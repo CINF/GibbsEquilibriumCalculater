@@ -62,7 +62,7 @@ class Molecule():
     
     def standard_gibbs(self, T=None):
         if T == None:
-            G = self.enthalpy()-298.15*self.entropy()
+            G = self.standard_enthalpy()-298.15*self.standard_entropy()
         else:
             Tk=float(T)/1000
             G = self.standard_enthalpy(T)-T*self.standard_entropy(T)

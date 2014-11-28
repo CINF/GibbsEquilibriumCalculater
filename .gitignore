@@ -1,2 +1,4 @@
 *pyc
 *.png
+*.py.lprof
+*.py_bak

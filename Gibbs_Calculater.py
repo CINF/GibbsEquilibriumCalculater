@@ -450,7 +450,7 @@ axis.set_xlabel('T / [K]', fontsize=10)
 axis.set_ylabel('c', fontsize=10)
 
 
-if False:
+if True:
     x = np.zeros(300)
     y1 = np.zeros(300)
     y2 = np.zeros(300)

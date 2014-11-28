@@ -42,9 +42,11 @@ def demo_of_methanol_equlibrium():
                      km.CH3OH: 0.0,
                      km.H2O: 0.0},temperature=Temperature)
         gas_0.set_pressure(Pressure)
-        eq_result_0 = gas_0.gas_equlibrium_v2([reaction1,reaction2],guess=[0.001,0.001],T=Temperature)
+        guess_new = [0.001,0.001]
+        eq_result_0 = gas_0.gas_equlibrium_v2([reaction1,reaction2], guess=guess_new, T=Temperature)
         guess_last = eq_result_0[1]
         guess_new = guess_last
+        step = 0.5*max(abs(guess_last - guess_new))
         CS = MeOH_control_set(2.5,cH2=0.75,cCO2=0.25,cCO=0.0,cMeOH=0.0,cH2O=0.0)
         for mol in ['MeOH','CO2', 'H2', 'CO', 'H2O']:
             CS[mol] = np.array(CS[mol])/100.*Pressure
@@ -59,9 +61,10 @@ def demo_of_methanol_equlibrium():
                      km.CH3OH: 0.0,
                      km.H2O: 0.0},temperature=Temperature)
             gas_0.set_pressure(Pressure)
-            eq_result_0 = gas_0.gas_equlibrium_v2([reaction1,reaction2], guess=guess_new, T=Temperature)
+            eq_result_0 = gas_0.gas_equlibrium_v2([reaction1,reaction2], guess=guess_new, step=step, T=Temperature)
             guess_last = eq_result_0[1]
-            guess_last = guess_last + 0.5*(guess_last - guess_last)
+            guess_new = guess_last + 0.5*(guess_last - guess_new)
+            step = 0.5*max(abs(guess_last - guess_new))
             gas_0.plot_guess_historic(filename = 'fig-guess/' + str(t_i))
             for mol in [km.H2, km.CO2, km.CO, km.H2O, km.CH3OH]:
                 Y[mol] += [eq_result_0[0].partial_pressures[mol]]

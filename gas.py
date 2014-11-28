@@ -6,6 +6,8 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+
+from random import randint
 R = 8.314462175
 pi = 3.141592653589793
 e = 2.718281828459045
@@ -66,8 +68,8 @@ class Gas():
     #def __getitem__(self,key):
     #    return self.partial_pressures[key]
 
-    #@profile
-    def gas_equlibrium_v2(self,reactions,guess = None,T=None):
+    @profile
+    def gas_equlibrium_v2(self,reactions,guess = None, step = None, T=None):
         tic = time.time()
         if T == None:
             temperature=self.temperature
@@ -81,6 +83,11 @@ class Gas():
         gas_reaction = []        
         for reaction in reactions:
             gas_reaction.append(Gas(reaction,temperature=temperature))
+        if step == None or step < 1e-7:
+            step_size = 0.01*(max((gas_reaction[0].partial_pressures.values())))/(max(self.partial_pressures.values()))
+            step = step_size
+        else:
+            step_size = step
         if guess == None:
             guess = np.array([0.0,0.0])
             guess_last = guess # The latest guess
@@ -112,7 +119,6 @@ class Gas():
         list_of_guess += [[guess_last, gas_result.gibbs()]]
         number_of_steps = 0
         number_of_succes = 0
-        step = 0.01*(max((gas_reaction[0].partial_pressures.values())))/(max(self.partial_pressures.values()))
         """for re_no in range(dimension): # optimize in each direction seperately to avoid boundary problems
             step = 0.01*(max((gas_reaction[re_no].partial_pressures.values())))/(max(self.partial_pressures.values()))
             i = 0
@@ -125,7 +131,7 @@ class Gas():
                 i+=1
                 guess_test = np.array(guess_last) # to prevent point reference
                 if guess_is_valid == False:
-                    random_step = step*(np.random.randn(1)-0.5*np.ones(1))
+                    random_step = step_size*(np.random.randint(-1,2,1))
                 guess_test[re_no] += random_step
                 gas_test = self
                 for re_no in range(dimension):
@@ -149,20 +155,22 @@ class Gas():
                 if n > 10:
                     n = 0
                     m +=1
-                    step *=0.5
+                    step_size *=0.5
                 if m > 20 or step < 1E-4:
-                    #print i, number_of_succes, step, guess_last
+                    #print i, number_of_succes, step_size, guess_last
                     crit = False
             number_of_steps+=i"""
         i = 0
-        step *= 100
+        step_size = step
         n = 0
         m = 0
         crit = True
         guess_is_valid = False
         while crit == True: # This is the only correct loop, must check if any partial pressures is 0.0
             if guess_is_valid == False:
-                random_step = step*(np.random.randn(dimension) - 0.5*np.ones(dimension))
+                random_step = step_size*(np.random.randint(-1,2,dimension))
+            else:
+                random_step = 1.1*random_step
             guess_test = np.array(guess_last) + random_step
             gas_test = self
             for re_no in range(dimension):
@@ -189,16 +197,16 @@ class Gas():
             if n > 10:
                 n = 0
                 m +=1
-                step *= 0.7
+                step_size *= 0.7
             if m > 50 or step < 1E-9 or i > 5000:
-                print i, m, number_of_succes, step, guess_last
+                print i, m, number_of_succes, step_size, guess_last
                 crit = False
             i += 1
             n += 1
         number_of_steps+=i
         self.guess_historic = list_of_guess
         print('Total number of steps: ' + str(number_of_succes) + ' / ' + str(number_of_steps))
-        print(' step size: ' + str(step) + ', Time: ' + str(time.time()-tic) )
+        print(' step size: ' + str(step_size) + ', Time: ' + str(time.time()-tic) )
         return gas_result, guess_last
             
 

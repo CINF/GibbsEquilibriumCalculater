@@ -68,7 +68,7 @@ class Gas():
     #def __getitem__(self,key):
     #    return self.partial_pressures[key]
 
-    @profile
+    #@profile
     def gas_equlibrium_v2(self,reactions,guess = None, step = None, T=None):
         tic = time.time()
         if T == None:
@@ -80,6 +80,7 @@ class Gas():
         gas_result = Gas(self.partial_pressures,temperature) # Equilibrated gas composition
         gibbs_start = gas_result.gibbs(T=temperature) # Gibbs energy of gas
         gibbs_last = gibbs_start
+        gibbs_test = gibbs_last
         gas_reaction = []        
         for reaction in reactions:
             gas_reaction.append(Gas(reaction,temperature=temperature))
@@ -100,11 +101,11 @@ class Gas():
                 gas_test += guess_test[i]*gas_reaction[i]
             if gas_test.is_gas_valid():#(np.array(gas_test.partial_pressures.values()) >= 0.0 ).all(): # Check that we no negetive partial pressures
                 gas_test.set_pressure(Pressure) # Scale partial pressures to overall pressure
-                #gibbs_test = gas_test.gibbs(T=temperature)
-                if  (self < gas_test) == False:
+                gibbs_test = gas_test.gibbs(T=temperature)
+                if  gibbs_test < self:
                     guess_last = guess_test
                     print guess_last
-                    #gibbs_last = gibbs_test
+                    gibbs_last = gibbs_test
                     gas_result = gas_test
                 else:
                     print 'guess was NOT better than initial gas'
@@ -166,11 +167,23 @@ class Gas():
         m = 0
         crit = True
         guess_is_valid = False
+        if dimension == 1:
+            posible_random = np.array([[-1], [1]])
+        if dimension == 2:
+            posible_random = np.array([[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]])
+        else:
+            posible_random = np.zeros((3**dimension,dimension))
+            for p_i in range(3**dimension):
+                for i_i in range(dimension):
+                    posible_random[p_i, i_i] = (p_i / (3**i_i)) % 3 - 1
+            posible_random = np.delete(posible_random, len(posible_random)/2, 0)
+        #posible_random = np.zeros((3**dimension-1, dimension))
+        no_random = 0
         while crit == True: # This is the only correct loop, must check if any partial pressures is 0.0
             if guess_is_valid == False:
-                random_step = step_size*(np.random.randint(-1,2,dimension))
+                random_step = step_size*(posible_random[no_random, :])
             else:
-                random_step = 1.1*random_step
+                random_step *= 2.0
             guess_test = np.array(guess_last) + random_step
             gas_test = self
             for re_no in range(dimension):
@@ -180,29 +193,27 @@ class Gas():
             #    gas_test = gas_test + guess_test[re_no_i]*gas_reaction[re_no_i]
             if gas_test.is_gas_valid():
                 gas_test.set_pressure(Pressure)
-                #gibbs_test =  gas_test.gibbs(T=temperature)
-                if gas_test <  gas_result: #comparing gibbs energy
+                gibbs_test =  gas_test.gibbs(T=temperature)
+                if gibbs_test <  gibbs_last: #comparing gibbs energy
                     guess_last = guess_test
-                    #gibbs_last = gibbs_test
+                    gibbs_last = gibbs_test
                     gas_result = gas_test
-                    number_of_succes +=1
-                    n=0
-                    m=0
+                    number_of_succes += 1
                     guess_is_valid = True
                     list_of_guess += [[guess_last, gas_result.gibbs()]]
                 else:
                     guess_is_valid = False
+                    no_random += 1
             else:
                 guess_is_valid = False
-            if n > 10:
-                n = 0
-                m +=1
-                step_size *= 0.7
-            if m > 50 or step < 1E-9 or i > 5000:
-                print i, m, number_of_succes, step_size, guess_last
+                no_random += 1
+            if no_random == 3**dimension - 1:
+                no_random = 0
+                step_size *= 1.0 / (3**dimension)
+            if step_size < 1E-10 or i > 5000:
+                print i, number_of_succes, step_size, guess_last
                 crit = False
             i += 1
-            n += 1
         number_of_steps+=i
         self.guess_historic = list_of_guess
         print('Total number of steps: ' + str(number_of_succes) + ' / ' + str(number_of_steps))

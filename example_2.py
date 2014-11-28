@@ -65,7 +65,7 @@ def demo_of_methanol_equlibrium():
             guess_last = eq_result_0[1]
             guess_new = guess_last + 0.5*(guess_last - guess_new)
             step = 0.5*max(abs(guess_last - guess_new))
-            gas_0.plot_guess_historic(filename = 'fig-guess/' + str(t_i))
+            #gas_0.plot_guess_historic(filename = 'fig-guess/' + str(t_i))
             for mol in [km.H2, km.CO2, km.CO, km.H2O, km.CH3OH]:
                 Y[mol] += [eq_result_0[0].partial_pressures[mol]]
         for mol in [km.H2, km.CO2, km.CO, km.H2O, km.CH3OH]:

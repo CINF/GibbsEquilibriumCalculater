@@ -1,9 +1,9 @@
+#!/bin/env python
+# pylint: disable=invalid-name
 
-import molecule
-import scipy.optimize
-import copy
+"""This module contains the gas class"""
+
 import numpy as np
-import known_molecules as km
 import time
 import matplotlib.pyplot as plt
 R = 8.314462175
@@ -204,8 +204,8 @@ class Gas():
 
     def list_of_atoms(self):
         atom_list = {}
-        for molecule in self.partial_pressures.keys():
-            for element in molecule.atoms:
+        for mole in self.partial_pressures.keys():
+            for element in mol.atoms:
                 if element.Z in atom_list:
                     atom_list[element.Z] += 1
                 else:
@@ -214,12 +214,12 @@ class Gas():
 
     def gas_atom_composition(self, option=None):
         atom_list = {}
-        for molecule in self.partial_pressures.keys():
-            for element in molecule.atoms:
+        for mol in self.partial_pressures.keys():
+            for element in mol.atoms:
                 if element.Z in atom_list:
-                    atom_list[element.Z] += self.partial_pressures[molecule]
+                    atom_list[element.Z] += self.partial_pressures[mol]
                 else:
-                    atom_list[element.Z] = self.partial_pressures[molecule]
+                    atom_list[element.Z] = self.partial_pressures[mol]
         if option == 'nomarlized':
             NOM = sum(atom_list.values())
             for element in atom_list:
